@@ -15,13 +15,14 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "pz-rail@git+https://github.com/LSSTDESC/RAIL.git@eac/minimal#egg=pz-rail",
+    "pz-rail-base",
     "scikit-learn",
 ]
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]
 dev = [
+    "qp-prob[full]",
     "pytest",
     "pytest-cov", # Used to report total code coverage
     "pre-commit", # Used to run checks before finalizing a git commit
