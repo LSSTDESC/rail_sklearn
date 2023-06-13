@@ -15,7 +15,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "pz-rail@git+https://github.com/LSSTDESC/RAIL.git#egg=eac/minimal",
+    "pz-rail@git+https://github.com/LSSTDESC/RAIL.git@eac/minimal#egg=pz-rail",
     "scikit-learn",
 ]
 
