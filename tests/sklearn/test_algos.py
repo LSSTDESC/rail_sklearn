@@ -4,7 +4,7 @@ import scipy.special
 
 from rail.core.algo_utils import one_algo
 from rail.core.stage import RailStage
-from rail.estimation.algos import knnpz, sklearn_nn
+from rail.estimation.algos import k_nearneigh, sklearn_nn
 
 sci_ver_str = scipy.__version__.split(".")
 
@@ -66,14 +66,14 @@ def test_KNearNeigh():
         nneigh_max=3,
         redshift_column_name="redshift",
         hdf5_groupname="photometry",
-        model="KNearNeighPDF.pkl",
+        model="KNearNeighEstimator.pkl",
     )
-    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighPDF.pkl")
+    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighEstimator.pkl")
 
     # zb_expected = np.array([0.13, 0.14, 0.13, 0.13, 0.11, 0.15, 0.13, 0.14,
     #                         0.11, 0.12])
-    train_algo = knnpz.Inform_KNearNeighPDF
-    pz_algo = knnpz.KNearNeighPDF
+    train_algo = k_nearneigh.KNearNeighInformer
+    pz_algo = k_nearneigh.KNearNeighEstimator
     results, rerun_results, rerun3_results = one_algo(
         "KNN", train_algo, pz_algo, train_config_dict, estim_config_dict
     )
