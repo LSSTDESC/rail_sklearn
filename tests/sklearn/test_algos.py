@@ -4,7 +4,7 @@ import scipy.special
 
 from rail.core.algo_utils import one_algo
 from rail.core.stage import RailStage
-from rail.estimation.algos import knnpz, sklearn_nn
+from rail.estimation.algos import knnpz, sklearn_nn, randomForestClassifier
 
 sci_ver_str = scipy.__version__.split(".")
 
@@ -87,3 +87,31 @@ def test_catch_bad_bands():
         sklearn_nn.Inform_SimpleNN.make_stage(hdf5_groupname="", **params)
     with pytest.raises(ValueError):
         sklearn_nn.SimpleNN.make_stage(hdf5_groupname="", **params)
+        
+        
+def test_randomForestClassifier():
+    bands = [ "r","i","z"]
+    band_names = {
+        "r":"mag_r_lsst",
+        "i":"mag_i_lsst",
+        "z":"mag_z_lsst",
+    }
+    bin_edges=[0,0.5,1.0]
+    
+    train_config_dict=dict(
+        bands=bands,
+        band_names=band_names,
+        redshift_col="redshift",
+        bin_edges=bin_edges,
+        random_seed=10,
+        model="model.tmp",
+    )
+    
+    estim_config_dict=dict(hdf5_groupname="photometry", model="model.tmp")
+    
+    train_algo = randomForestClassifier.Inform_randomForestClassifier
+    tomo_algo = randomForestClassifier.randomForestClassifier
+    results, rerun_results, rerun3_results = one_algo(
+        "randomForestClassifier", train_algo, tomo_algo, train_config_dict, estim_config_dict
+    )
+    assert np.isclose(results["tomo"], rerun_results["tomo"]).all()

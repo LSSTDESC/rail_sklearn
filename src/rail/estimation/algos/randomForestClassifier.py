@@ -29,7 +29,7 @@ class Inform_randomForestClassifier(CatInformer):
     config_options.update(
         bands=Param(tuple, ["r","i","z"], msg="Which bands to use for classification"),
         band_names=param(dict, {"r": "mag_r", "i": "mag_i", "z":"mag_z"}, msg="Band column names"),
-        z_name=param(str, "sz", msg="Redshift column names"),
+        redshift_col=param(str, "sz", msg="Redshift column names"),
         bin_edges=Param(tuple, [0,0.5,1.0], msg="Binning for training data"),
         random_seed=Param(int, msg="random seed"),)
     outputs = [('model', ModelHandle)]
@@ -67,9 +67,9 @@ class Inform_randomForestClassifier(CatInformer):
         print("Training data for bin classifier has shape ", training_data.shape)
 
         # Now put the training data into redshift bins
-        # We use -1 to indicate that we are outside the desired ranges
-        z = training_data_table[self.config.z_name]
-        training_bin = np.repeat(-1, len(z))
+        # We use -99 to indicate that we are outside the desired ranges
+        z = training_data_table[self.config.redshift_col]
+        training_bin = np.repeat(-99, len(z))
         print("Using these bin edges:", self.config.bin_edges)
         for i, zmin in enumerate(self.config.bin_edges[:-1]):
             zmax = self.config.bin_edges[i + 1]
