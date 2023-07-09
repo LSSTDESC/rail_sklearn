@@ -1,5 +1,5 @@
 """
-Implement simple version of TxPipe NZDirSummarizer
+Implement simple version of TxPipe NZDir
 """
 
 import numpy as np
