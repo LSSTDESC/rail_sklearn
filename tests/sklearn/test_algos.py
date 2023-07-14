@@ -4,7 +4,7 @@ import scipy.special
 
 from rail.core.algo_utils import one_algo
 from rail.core.stage import RailStage
-from rail.estimation.algos import knnpz, sklearn_nn
+from rail.estimation.algos import k_nearneigh, sklearn_neurnet
 
 sci_ver_str = scipy.__version__.split(".")
 
@@ -24,8 +24,8 @@ def test_simple_nn():
     }
     estim_config_dict = {"hdf5_groupname": "photometry", "model": "model.tmp"}
     # zb_expected = np.array([0.152, 0.135, 0.109, 0.158, 0.113, 0.176, 0.13 , 0.15 , 0.119, 0.133])
-    train_algo = sklearn_nn.Inform_SimpleNN
-    pz_algo = sklearn_nn.SimpleNN
+    train_algo = sklearn_neurnet.SklNeurNetInformer
+    pz_algo = sklearn_neurnet.SklNeurNetEstimator
     results, rerun_results, rerun3_results = one_algo(
         "SimpleNN", train_algo, pz_algo, train_config_dict, estim_config_dict
     )
@@ -66,14 +66,14 @@ def test_KNearNeigh():
         nneigh_max=3,
         redshift_column_name="redshift",
         hdf5_groupname="photometry",
-        model="KNearNeighPDF.pkl",
+        model="KNearNeighEstimator.pkl",
     )
-    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighPDF.pkl")
+    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighEstimator.pkl")
 
     # zb_expected = np.array([0.13, 0.14, 0.13, 0.13, 0.11, 0.15, 0.13, 0.14,
     #                         0.11, 0.12])
-    train_algo = knnpz.Inform_KNearNeighPDF
-    pz_algo = knnpz.KNearNeighPDF
+    train_algo = k_nearneigh.KNearNeighInformer
+    pz_algo = k_nearneigh.KNearNeighEstimator
     results, rerun_results, rerun3_results = one_algo(
         "KNN", train_algo, pz_algo, train_config_dict, estim_config_dict
     )
@@ -84,6 +84,6 @@ def test_KNearNeigh():
 def test_catch_bad_bands():
     params = dict(bands="u,g,r,i,z,y")
     with pytest.raises(ValueError):
-        sklearn_nn.Inform_SimpleNN.make_stage(hdf5_groupname="", **params)
+        sklearn_neurnet.SklNeurNetInformer.make_stage(hdf5_groupname="", **params)
     with pytest.raises(ValueError):
-        sklearn_nn.SimpleNN.make_stage(hdf5_groupname="", **params)
+        sklearn_neurnet.SklNeurNetEstimator.make_stage(hdf5_groupname="", **params)

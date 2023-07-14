@@ -39,10 +39,10 @@ def _makepdf(dists, ids, szs, sigma):
     return pdfs
 
 
-class Inform_KNearNeighPDF(CatInformer):
+class KNearNeighInformer(CatInformer):
     """Train a KNN-based estimator
     """
-    name = 'Inform_KNearNeighPDF'
+    name = 'KNearNeighInformer'
     config_options = CatInformer.config_options.copy()
     config_options.update(zmin=SHARED_PARAMS,
                           zmax=SHARED_PARAMS,
@@ -132,10 +132,10 @@ class Inform_KNearNeighPDF(CatInformer):
         self.add_data('model', self.model)
 
 
-class KNearNeighPDF(CatEstimator):
+class KNearNeighEstimator(CatEstimator):
     """KNN-based estimator
     """
-    name = 'KNearNeighPDF'
+    name = 'KNearNeighEstimator'
     config_options = CatEstimator.config_options.copy()
     config_options.update(zmin=SHARED_PARAMS,
                           zmax=SHARED_PARAMS,
