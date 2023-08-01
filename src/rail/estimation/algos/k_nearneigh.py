@@ -18,6 +18,8 @@ import pandas as pd
 import qp
 
 
+TEENY = 1.e-15
+
 
 def _computecolordata(df, ref_column_name, column_names):
     newdict = {}
@@ -116,6 +118,8 @@ class KNearNeighInformer(CatInformer):
         for sig in siggrid:
             for nn in range(self.config.nneigh_min, self.config.nneigh_max + 1):
                 dists, idxs = tmpmodel.query(val_data, k=nn)
+                # add a small small number to guard against NaN when obj of same color exists in spec file
+                dists += TEENY
                 ens = _makepdf(dists, idxs, train_sz, sig)
                 cdelossobj = CDELoss(ens, self.zgrid, val_sz)
                 cdeloss = cdelossobj.evaluate().statistic
@@ -161,7 +165,7 @@ class KNearNeighEstimator(CatEstimator):
 
     def open_model(self, **kwargs):
         CatEstimator.open_model(self, **kwargs)
-        if self.model is None:  #pragma: no cover
+        if self.model is None:   # pragma: no cover
             return
         self.sigma = self.model['bestsig']
         self.numneigh = self.model['nneigh']
