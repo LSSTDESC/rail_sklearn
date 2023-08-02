@@ -1,5 +1,5 @@
 """
-Implement simple version of TxPipe NZDir summarizer
+Implement simple version of TxPipe NZDir
 """
 
 import numpy as np
@@ -11,7 +11,7 @@ import scipy.spatial
 import pandas as pd
 
 
-class Inform_NZDir(CatInformer):
+class NZDirInformer(CatInformer):
     """Quick implementation of an NZ Estimator that
     creates weights for each input
     object using sklearn's NearestNeighbors.
@@ -30,7 +30,7 @@ class Inform_NZDir(CatInformer):
     bands = ['u', 'g', 'r', 'i', 'z', 'y']
     default_usecols = [f"mag_{band}_lsst" for band in bands]
 
-    name = 'Inform_NZDir'
+    name = 'NZDirInformer'
     config_options = CatInformer.config_options.copy()
     config_options.update(usecols=Param(list, default_usecols, msg="columns from sz_data for Neighor calculation"),
                           n_neigh=Param(int, 10, msg="number of neighbors to use"),
@@ -80,7 +80,7 @@ class Inform_NZDir(CatInformer):
         self.add_data('model', self.model)
 
 
-class NZDir(CatEstimator):
+class NZDirSummarizer(CatEstimator):
     """Quick implementation of a summarizer that creates
     weights for each input object using sklearn's
     NearestNeighbors.  Very basic, we can probably
@@ -104,7 +104,7 @@ class NZDir(CatEstimator):
     bands = ['u', 'g', 'r', 'i', 'z', 'y']
     default_usecols = [f"mag_{band}_lsst" for band in bands]
 
-    name = 'NZDir'
+    name = 'NZDirSummarizer'
     config_options = CatEstimator.config_options.copy()
     config_options.update(zmin=Param(float, 0.0, msg="The minimum redshift of the z grid"),
                           zmax=Param(float, 3.0, msg="The maximum redshift of the z grid"),

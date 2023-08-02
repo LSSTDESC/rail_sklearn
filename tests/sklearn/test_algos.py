@@ -4,7 +4,7 @@ import scipy.special
 
 from rail.core.algo_utils import one_algo
 from rail.core.stage import RailStage
-from rail.estimation.algos import knnpz, sklearn_nn, random_forest
+from rail.estimation.algos import k_nearneigh, sklearn_neurnet, random_forest
 
 sci_ver_str = scipy.__version__.split(".")
 
@@ -88,7 +88,7 @@ def test_catch_bad_bands():
     with pytest.raises(ValueError):
         sklearn_nn.SimpleNN.make_stage(hdf5_groupname="", **params)
         
-        
+
 def test_randomForestClassifier():
     bands = [ "r","i","z"]
     band_names = {
