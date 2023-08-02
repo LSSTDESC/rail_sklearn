@@ -4,7 +4,7 @@ import scipy.special
 
 from rail.core.algo_utils import one_algo
 from rail.core.stage import RailStage
-from rail.estimation.algos import knnpz, sklearn_nn, randomForestClassifier
+from rail.estimation.algos import knnpz, sklearn_nn, random_forest
 
 sci_ver_str = scipy.__version__.split(".")
 
@@ -109,9 +109,9 @@ def test_randomForestClassifier():
     
     estim_config_dict=dict(hdf5_groupname="photometry", model="model.tmp")
     
-    train_algo = randomForestClassifier.Inform_randomForestClassifier
-    tomo_algo = randomForestClassifier.randomForestClassifier
+    train_algo = random_forest.Inform_randomForestClassifier
+    tomo_algo = random_forest.randomForestClassifier
     results, rerun_results, rerun3_results = one_algo(
         "randomForestClassifier", train_algo, tomo_algo, train_config_dict, estim_config_dict
     )
-    assert np.isclose(results["tomo"], rerun_results["tomo"]).all()
+    assert np.isclose(results["class_id"], rerun_results["class_id"]).all()
