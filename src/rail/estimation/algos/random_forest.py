@@ -9,7 +9,7 @@ import numpy as np
 from ceci.config import StageParameter as Param
 from rail.estimation.classifier import CatClassifier
 from rail.estimation.informer import CatInformer
-from rail.core.data import TanbleHandle, ModelHandle
+from rail.core.data import TableHandle, ModelHandle
 from sklearn.ensemble import RandomForestClassifier as skl_RandomForestClassifier
 
 
@@ -29,8 +29,8 @@ class Inform_randomForestClassifier(CatInformer):
     config_options = CatInformer.config_options.copy()
     config_options.update(
         bands=Param(tuple, ["r","i","z"], msg="Which bands to use for classification"),
-        band_names=param(dict, {"r": "mag_r", "i": "mag_i", "z":"mag_z"}, msg="Band column names"),
-        redshift_col=param(str, "sz", msg="Redshift column names"),
+        band_names=Param(dict, {"r": "mag_r", "i": "mag_i", "z":"mag_z"}, msg="Band column names"),
+        redshift_col=Param(str, "sz", msg="Redshift column names"),
         bin_edges=Param(tuple, [0,0.5,1.0], msg="Binning for training data"),
         random_seed=Param(int, msg="random seed"),
         no_assign=Param(int, -99, msg="Value for no assignment flag"),)
@@ -102,7 +102,7 @@ class randomForestClassifier(CatClassifier):
     config_options.update(
         id_name=Param(str, "", msg="Column name for the object ID in the input data, if empty the row index is used as the ID."),
         bands=Param(tuple, ["r","i","z"], msg="Which bands to use for classification"),
-        band_names=param(dict, {"r": "mag_r", "i": "mag_i", "z":"mag_z"}, msg="Band column names"),)
+        band_names=Param(dict, {"r": "mag_r", "i": "mag_i", "z":"mag_z"}, msg="Band column names"),)
     outputs = [('output', TableHandle)]
     
     def __init__(self, args, comm=None):
