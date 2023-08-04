@@ -104,7 +104,7 @@ def test_same_data_knn():
     assert ~(np.isnan(modes).all())
     os.remove(pz.get_output(pz.get_aliased_tag('output'), final_name=True))
 
-    
+
 def test_catch_bad_bands():
     params = dict(bands="u,g,r,i,z,y")
     with pytest.raises(ValueError):
