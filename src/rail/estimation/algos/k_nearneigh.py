@@ -190,6 +190,7 @@ class KNearNeighEstimator(CatEstimator):
 
         testcolordata = _computecolordata(knn_df, self.config.ref_band, self.config.bands)
         dists, idxs = self.kdtree.query(testcolordata, k=self.numneigh)
+        dists += TEENY
         test_ens = _makepdf(dists, idxs, self.trainszs, self.sigma)
         zmode = test_ens.mode(grid=self.zgrid)
         test_ens.set_ancil(dict(zmode=zmode))
