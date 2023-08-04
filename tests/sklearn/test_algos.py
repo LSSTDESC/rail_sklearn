@@ -69,9 +69,9 @@ def test_KNearNeigh():
         nneigh_max=3,
         redshift_column_name="redshift",
         hdf5_groupname="photometry",
-        model="KNearNeighPDF.pkl",
+        model="KNearNeighEstimator.pkl",
     )
-    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighPDF.pkl")
+    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighEstimator.pkl")
 
     # zb_expected = np.array([0.13, 0.14, 0.13, 0.13, 0.11, 0.15, 0.13, 0.14,
     #                         0.11, 0.12])
@@ -83,7 +83,6 @@ def test_KNearNeigh():
     # assert np.isclose(results.ancil['zmode'], zb_expected).all()
     assert np.isclose(results.ancil["zmode"], rerun_results.ancil["zmode"]).all()
 
-    
 # test for k=1 when data point has same value, used to cause errors because of
 # a divide by zero, should be fixed now but add a test
 def test_same_data_knn():
@@ -104,7 +103,7 @@ def test_same_data_knn():
     assert ~(np.isnan(modes).all())
     os.remove(pz.get_output(pz.get_aliased_tag('output'), final_name=True))
 
-
+    
 def test_catch_bad_bands():
     params = dict(bands="u,g,r,i,z,y")
     with pytest.raises(ValueError):
