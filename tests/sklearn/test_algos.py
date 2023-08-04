@@ -1,9 +1,12 @@
 import numpy as np
+import os
 import pytest
 import scipy.special
 
 from rail.core.algo_utils import one_algo
 from rail.core.stage import RailStage
+from rail.core.utils import RAILDIR
+from rail.core.data import TableHandle
 from rail.estimation.algos import k_nearneigh, sklearn_neurnet
 
 sci_ver_str = scipy.__version__.split(".")
@@ -79,6 +82,27 @@ def test_KNearNeigh():
     )
     # assert np.isclose(results.ancil['zmode'], zb_expected).all()
     assert np.isclose(results.ancil["zmode"], rerun_results.ancil["zmode"]).all()
+
+
+# test for k=1 when data point has same value, used to cause errors because of
+# a divide by zero, should be fixed now but add a test
+def test_same_data_knn():
+    train_config_dict = dict(hdf5_groupname="photometry",
+                             model="KNearNeighEstimator.pkl")
+    estim_config_dict = dict(hdf5_groupname="photometry",
+                             model="KNearNeighEstimator.pkl")
+
+    traindata = os.path.join(RAILDIR, 'rail/examples_data/testdata/training_100gal.hdf5')
+    DS = RailStage.data_store
+    DS.__class__.allow_overwrite = True
+    training_data = DS.read_file('training_data', TableHandle, traindata)
+    trainer = k_nearneigh.KNearNeighInformer.make_stage(name='same_train', **train_config_dict)
+    trainer.inform(training_data)
+    pz = k_nearneigh.KNearNeighEstimator.make_stage(name='same_estim', **estim_config_dict)
+    estim = pz.estimate(training_data)  # run estimate on same input file
+    modes = estim().ancil['zmode']
+    assert ~(np.isnan(modes).all())
+    os.remove(pz.get_output(pz.get_aliased_tag('output'), final_name=True))
 
 
 def test_catch_bad_bands():
