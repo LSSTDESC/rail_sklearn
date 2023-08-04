@@ -115,8 +115,8 @@ def test_catch_bad_bands():
 
 def test_randomForestClassifier():
     class_bands = [ "r","i","z"]
-    bands = {"r": "mag_r_lsst","i": "mag_i_lsst","z": "mag_z_lsst"}
-    bin_edges=[0,0.5,1.0]
+    bands = {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"}
+    bin_edges=[0,0.2,0.5]
     
     train_config_dict=dict(
         class_bands=class_bands,
@@ -128,11 +128,13 @@ def test_randomForestClassifier():
         model="model.tmp",
     )
     
-    estim_config_dict=dict(hdf5_groupname="photometry", model="model.tmp")
+    estim_config_dict=dict(hdf5_groupname="photometry", model="model.tmp", id_name="")
     
     train_algo = random_forest.Inform_randomForestClassifier
     tomo_algo = random_forest.randomForestClassifier
     results, rerun_results, rerun3_results = one_algo(
-        "randomForestClassifier", train_algo, tomo_algo, train_config_dict, estim_config_dict
+        "randomForestClassifier", train_algo, tomo_algo, train_config_dict, estim_config_dict,
+        is_classifier=True,
     )
-    assert np.isclose(results["class_id"], rerun_results["class_id"]).all()
+    assert np.isclose(results["data"]["class_id"], rerun_results["data"]["class_id"]).all()
+    assert len(results["data"]["class_id"])==len(results["data"]["row_index"])
