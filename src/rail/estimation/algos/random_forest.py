@@ -25,7 +25,7 @@ class randomForestmodel:
         self.features = features
 
 
-class Inform_randomForestClassifier(CatInformer):
+class RandomForestInformer(CatInformer):
     """Train the random forest classifier"""
     
     name = 'Inform_randomForestClassifier'
@@ -96,7 +96,7 @@ class Inform_randomForestClassifier(CatInformer):
         self.add_data('model', self.model)
         
 
-class randomForestClassifier(CatClassifier):
+class RandomForestClassifier(CatClassifier):
     """Classifier that assigns tomographic 
     bins based on random forest method"""
     

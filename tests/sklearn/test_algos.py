@@ -129,8 +129,8 @@ def test_randomForestClassifier():
     
     estim_config_dict=dict(hdf5_groupname="photometry", model="model.tmp", id_name="")
     
-    train_algo = random_forest.Inform_randomForestClassifier
-    tomo_algo = random_forest.randomForestClassifier
+    train_algo = random_forest.RandomForestInformer
+    tomo_algo = random_forest.RandomForestClassifier
     results, rerun_results, rerun3_results = one_algo(
         "randomForestClassifier", train_algo, tomo_algo, train_config_dict, estim_config_dict,
         is_classifier=True,
@@ -155,8 +155,8 @@ def test_randomForestClassifier_id():
     )
     estim_config_dict=dict(hdf5_groupname="photometry", model="model.tmp", id_name="id")
     
-    train_algo = random_forest.Inform_randomForestClassifier
-    tomo_algo = random_forest.randomForestClassifier
+    train_algo = random_forest.RandomForestInformer
+    tomo_algo = random_forest.RandomForestClassifier
     
     traindata = os.path.join(RAILDIR, 'rail/examples_data/testdata/training_100gal.hdf5')
     validdata = os.path.join(RAILDIR, 'rail/examples_data/testdata/validation_10gal.hdf5')
