@@ -1,9 +1,12 @@
 import numpy as np
+import os
 import pytest
 import scipy.special
 
 from rail.core.algo_utils import one_algo
 from rail.core.stage import RailStage
+from rail.core.utils import RAILDIR
+from rail.core.data import TableHandle
 from rail.estimation.algos import k_nearneigh, sklearn_neurnet, random_forest
 
 sci_ver_str = scipy.__version__.split(".")
@@ -24,8 +27,8 @@ def test_simple_nn():
     }
     estim_config_dict = {"hdf5_groupname": "photometry", "model": "model.tmp"}
     # zb_expected = np.array([0.152, 0.135, 0.109, 0.158, 0.113, 0.176, 0.13 , 0.15 , 0.119, 0.133])
-    train_algo = sklearn_nn.Inform_SimpleNN
-    pz_algo = sklearn_nn.SimpleNN
+    train_algo = sklearn_neurnet.SklNeurNetInformer
+    pz_algo = sklearn_neurnet.SklNeurNetEstimator
     results, rerun_results, rerun3_results = one_algo(
         "SimpleNN", train_algo, pz_algo, train_config_dict, estim_config_dict
     )
@@ -72,38 +75,56 @@ def test_KNearNeigh():
 
     # zb_expected = np.array([0.13, 0.14, 0.13, 0.13, 0.11, 0.15, 0.13, 0.14,
     #                         0.11, 0.12])
-    train_algo = knnpz.Inform_KNearNeighPDF
-    pz_algo = knnpz.KNearNeighPDF
+    train_algo = k_nearneigh.KNearNeighInformer
+    pz_algo = k_nearneigh.KNearNeighEstimator
     results, rerun_results, rerun3_results = one_algo(
         "KNN", train_algo, pz_algo, train_config_dict, estim_config_dict
     )
     # assert np.isclose(results.ancil['zmode'], zb_expected).all()
     assert np.isclose(results.ancil["zmode"], rerun_results.ancil["zmode"]).all()
 
+    
+# test for k=1 when data point has same value, used to cause errors because of
+# a divide by zero, should be fixed now but add a test
+def test_same_data_knn():
+    train_config_dict = dict(hdf5_groupname="photometry",
+                             model="KNearNeighEstimator.pkl")
+    estim_config_dict = dict(hdf5_groupname="photometry",
+                             model="KNearNeighEstimator.pkl")
 
+    traindata = os.path.join(RAILDIR, 'rail/examples_data/testdata/training_100gal.hdf5')
+    DS = RailStage.data_store
+    DS.__class__.allow_overwrite = True
+    training_data = DS.read_file('training_data', TableHandle, traindata)
+    trainer = k_nearneigh.KNearNeighInformer.make_stage(name='same_train', **train_config_dict)
+    trainer.inform(training_data)
+    pz = k_nearneigh.KNearNeighEstimator.make_stage(name='same_estim', **estim_config_dict)
+    estim = pz.estimate(training_data)  # run estimate on same input file
+    modes = estim().ancil['zmode']
+    assert ~(np.isnan(modes).all())
+    os.remove(pz.get_output(pz.get_aliased_tag('output'), final_name=True))
+
+    
 def test_catch_bad_bands():
     params = dict(bands="u,g,r,i,z,y")
     with pytest.raises(ValueError):
-        sklearn_nn.Inform_SimpleNN.make_stage(hdf5_groupname="", **params)
+        sklearn_neurnet.SklNeurNetInformer.make_stage(hdf5_groupname="", **params)
     with pytest.raises(ValueError):
-        sklearn_nn.SimpleNN.make_stage(hdf5_groupname="", **params)
+        sklearn_neurnet.SklNeurNetEstimator.make_stage(hdf5_groupname="", **params)
         
 
 def test_randomForestClassifier():
-    bands = [ "r","i","z"]
-    band_names = {
-        "r":"mag_r_lsst",
-        "i":"mag_i_lsst",
-        "z":"mag_z_lsst",
-    }
+    class_bands = [ "r","i","z"]
+    bands = {"r": "mag_r_lsst","i": "mag_i_lsst","z": "mag_z_lsst"}
     bin_edges=[0,0.5,1.0]
     
     train_config_dict=dict(
+        class_bands=class_bands,
         bands=bands,
-        band_names=band_names,
         redshift_col="redshift",
         bin_edges=bin_edges,
         random_seed=10,
+        hdf5_groupname="photometry",
         model="model.tmp",
     )
     
