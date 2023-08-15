@@ -137,6 +137,7 @@ class NZDirSummarizer(CatEstimator):
         self.sz_mag_data = self.model['sz_mag_data']
 
     def run(self):
+        self.open_model(**self.config)
         rng = np.random.default_rng(seed=self.config.seed)
         self.zgrid = np.linspace(self.config.zmin, self.config.zmax, self.config.nzbins + 1)
         self.bincents = 0.5 * (self.zgrid[1:] + self.zgrid[:-1])
