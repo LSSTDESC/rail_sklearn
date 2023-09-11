@@ -15,7 +15,7 @@ photometric redshift data products, including uncertainties and summary
 statistics, and stress-test them under realistically complex systematics.
 A detailed description of RAIL's modular structure is available in the 
 [Overview](https://lsstdescrail.readthedocs.io/en/latest/source/overview.html) 
-on ReadTheDocs.
+on ReadTheDocs. 
 
 RAIL serves as the infrastructure supporting many extragalactic applications 
 of the Legacy Survey of Space and Time (LSST) on the Vera C. Rubin Observatory,
