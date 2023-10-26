@@ -1,5 +1,6 @@
 [project]
 name = "pz-rail-sklearn"
+requires-python = ">=3.9"
 license = {file = "LICENSE"}
 readme = "README.md"
 authors = [
@@ -18,6 +19,8 @@ dependencies = [
     "pz-rail-base",
     "scikit-learn",
 ]
+
+dependencies = []
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]
@@ -38,11 +41,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 write_to = "src/rail/sklearn/_version.py"
-
-[tools.setuptools.packages.find]
-where = ["."]
-include = ["rail"]
-namespaces = true
 
 [tool.pytest.ini_options]
 testpaths = [
