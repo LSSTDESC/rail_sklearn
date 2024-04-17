@@ -158,11 +158,10 @@ class NZDirSummarizer(CatEstimator):
         first = True
         self._initialize_run()
         self._output_handle = None
-        total_chunks = int(np.ceil(self._input_length/self.config.chunk_size))
         for s, e, test_data in iterator:
             print(f"Process {self.rank} running estimator on chunk {s} - {e}")
-
-            total_chunks = int(np.ceil(self._input_length/self.config.chunk_size))
+            if first:
+                total_chunks = int(np.ceil(self._input_length/(e-s)))
             chunk_number = s//self.config.chunk_size
             self._process_chunk(first, total_chunks, chunk_number, test_data, bootstrap_matrix)
             first = False
