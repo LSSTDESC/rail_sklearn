@@ -3,7 +3,7 @@ import os
 import pytest
 import scipy.special
 
-from rail.utils.algo_utils import one_algo
+from rail.utils.testing_utils import one_algo
 from rail.core.stage import RailStage
 from rail.utils.path_utils import RAILDIR
 from rail.core.data import TableHandle
