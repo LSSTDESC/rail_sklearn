@@ -3,9 +3,9 @@ import os
 import pytest
 import scipy.special
 
-from rail.core.algo_utils import one_algo
+from rail.utils.testing_utils import one_algo
 from rail.core.stage import RailStage
-from rail.core.utils import RAILDIR
+from rail.utils.path_utils import RAILDIR
 from rail.core.data import TableHandle
 from rail.estimation.algos import k_nearneigh, sklearn_neurnet, random_forest
 
