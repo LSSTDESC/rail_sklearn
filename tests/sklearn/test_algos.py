@@ -107,8 +107,18 @@ def test_same_data_knn():
 def test_bad_inputs_knn():
     train_algo = k_nearneigh.KNearNeighInformer
     pz_algo = k_nearneigh.KNearNeighEstimator
+    def_maglims = dict(
+        mag_u_lsst=27.79,
+        mag_g_lsst=29.04,
+        mag_r_lsst=29.06,
+        mag_i_lsst=28.62,
+        mag_z_lsst=27.98,
+        mag_y_lsst=27.05,
+    )
     with pytest.raises(KeyError):
-        params = dict(bands="u, g, r, i, z, y, fakeband")
+        params = dict(bands=["u, g, r, i, fakeband"],
+                      ref_band="mag_i_lsst",
+                      mag_limits=def_maglims)
         results, rerun_results, rerun3_results = one_algo(
             "KNN", train_algo, pz_algo, params, params)
 
