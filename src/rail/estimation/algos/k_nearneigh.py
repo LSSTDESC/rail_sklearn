@@ -87,6 +87,19 @@ class KNearNeighInformer(CatInformer):
         knndf = pd.DataFrame(training_data, columns=self.config.bands)
         self.zgrid = np.linspace(self.config.zmin, self.config.zmax, self.config.nzbins)
 
+        # check that bands are present in the data
+        for band in self.config.bands:
+            if band not in knndf.keys():
+                raise KeyError(f"specified band {band} not found in input data")
+        # check that ref band present in data
+        if self.config.ref_band not in knndf.keys():
+            raise ValueError(f"ref_band {self.config.ref_band} not found in input data")
+        # check that mag_limit dict keys are in input data
+        for mkey in self.config.mag_limits.keys():
+            if mkey not in knndf.keys():
+                raise KeyError(f"mag_limits dict key {mkey} not present in input data, make sure that you"
+                               "have specified the mag_limits dict with the same names as your bands")
+        
         # replace nondetects
         # will fancy this up later with a flow to sample from truth
         for col in self.config.bands:

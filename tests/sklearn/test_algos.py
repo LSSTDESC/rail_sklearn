@@ -103,6 +103,23 @@ def test_same_data_knn():
     assert ~(np.isnan(modes).all())
     os.remove(pz.get_output(pz.get_aliased_tag('output'), final_name=True))
 
+
+def test_bad_inputs_knn():
+    train_algo = k_nearneigh.KNearNeighInformer
+    pz_algo = k_nearneigh.KNearNeighEstimator
+    with pytest.raises(KeyError):
+        params = dict(bands="u, g, r, i, z, y, fakeband")
+        results, rerun_results, rerun3_results = one_algo(
+            "KNN", train_algo, pz_algo, params, params)        
+    with pytest.raises(ValueError):
+        params = dict(ref_band="fakeband")
+        results, rerun_results, rerun3_results = one_algo(
+            "KNN", train_algo, pz_algo, params, params)
+    with pytest.raises(KeyError):
+        mag_limits = dict(fakeband=29., xband=30.)
+        params = dict(mag_limits=mag_limits)
+        results, rerun_results, rerun3_results = one_algo(
+            "KNN", train_algo, pz_algo, params, params)      
     
 def test_catch_bad_bands():
     params = dict(bands="u,g,r,i,z,y")
