@@ -15,6 +15,7 @@ sci_ver_str = scipy.__version__.split(".")
 DS = RailStage.data_store
 DS.__class__.allow_overwrite = True
 
+
 def test_simple_nn():
     train_config_dict = {
         "width": 0.025,
@@ -34,7 +35,6 @@ def test_simple_nn():
     )
     # assert np.isclose(results.ancil['zmode'], zb_expected).all()
     assert np.isclose(results.ancil["zmode"], rerun_results.ancil["zmode"]).all()
-
 
 
 @pytest.mark.skipif(
@@ -82,6 +82,7 @@ def test_KNearNeigh():
     )
     # assert np.isclose(results.ancil['zmode'], zb_expected).all()
     assert np.isclose(results.ancil["zmode"], rerun_results.ancil["zmode"]).all()
+
 
 # test for k=1 when data point has same value, used to cause errors because of
 # a divide by zero, should be fixed now but add a test
@@ -139,7 +140,7 @@ def test_bad_mag_lims_knn():
         mag_limits = dict(fakeband=29., xband=30.)
         params = dict(mag_limits=mag_limits)
         results, rerun_results, rerun3_results = one_algo(
-            "KNN", train_algo, pz_algo, params, params)      
+            "KNN", train_algo, pz_algo, params, params)
 
 
 def test_catch_bad_bands():
@@ -148,14 +149,14 @@ def test_catch_bad_bands():
         sklearn_neurnet.SklNeurNetInformer.make_stage(hdf5_groupname="", **params)
     with pytest.raises(ValueError):
         sklearn_neurnet.SklNeurNetEstimator.make_stage(hdf5_groupname="", **params)
-        
+
 
 def test_randomForestClassifier():
-    class_bands = [ "r","i","z"]
+    class_bands = ["r", "i", "z"]
     bands = {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"}
-    bin_edges=[0,0.2,0.5]
-    
-    train_config_dict=dict(
+    bin_edges = [0, 0.2, 0.5]
+
+    train_config_dict = dict(
         class_bands=class_bands,
         bands=bands,
         redshift_col="redshift",
@@ -164,9 +165,9 @@ def test_randomForestClassifier():
         hdf5_groupname="photometry",
         model="model.tmp",
     )
-    
-    estim_config_dict=dict(hdf5_groupname="photometry", model="model.tmp", id_name="")
-    
+
+    estim_config_dict = dict(hdf5_groupname="photometry", model="model.tmp", id_name="")
+
     train_algo = random_forest.RandomForestInformer
     tomo_algo = random_forest.RandomForestClassifier
     results, rerun_results, rerun3_results = one_algo(
@@ -174,15 +175,15 @@ def test_randomForestClassifier():
         is_classifier=True,
     )
     assert np.isclose(results["data"]["class_id"], rerun_results["data"]["class_id"]).all()
-    assert len(results["data"]["class_id"])==len(results["data"]["row_index"])
+    assert len(results["data"]["class_id"]) == len(results["data"]["row_index"])
 
 
 def test_randomForestClassifier_id():
-    class_bands = [ "r","i","z"]
+    class_bands = ["r", "i", "z"]
     bands = {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"}
-    bin_edges=[0,0.2,0.5]
-    
-    train_config_dict=dict(
+    bin_edges = [0, 0.2, 0.5]
+
+    train_config_dict = dict(
         class_bands=class_bands,
         bands=bands,
         redshift_col="redshift",
@@ -191,32 +192,32 @@ def test_randomForestClassifier_id():
         hdf5_groupname="photometry",
         model="model.tmp",
     )
-    estim_config_dict=dict(hdf5_groupname="photometry", model="model.tmp", id_name="id")
-    
+    estim_config_dict = dict(hdf5_groupname="photometry", model="model.tmp", id_name="id")
+
     train_algo = random_forest.RandomForestInformer
     tomo_algo = random_forest.RandomForestClassifier
-    
+
     traindata = os.path.join(RAILDIR, 'rail/examples_data/testdata/training_100gal.hdf5')
     validdata = os.path.join(RAILDIR, 'rail/examples_data/testdata/validation_10gal.hdf5')
-    
+
     DS = RailStage.data_store
     DS.__class__.allow_overwrite = True
     DS.clear()
     training_data = DS.read_file('training_data', TableHandle, traindata)
     validation_data = DS.read_file('validation_data', TableHandle, validdata)
-    
+
     train_pz = train_algo.make_stage(**train_config_dict)
     train_pz.inform(training_data)
     pz = tomo_algo.make_stage(name="randomForestClassifier", **estim_config_dict)
     estim = pz.classify(training_data)
-    results=estim.data
-    
+    results = estim.data
+
     os.remove(pz.get_output(pz.get_aliased_tag('output'), final_name=True))
     model_file = estim_config_dict.get('model', 'None')
     if model_file != 'None':
         try:
             os.remove(model_file)
-        except FileNotFoundError:  #pragma: no cover
+        except FileNotFoundError:  # pragma: no cover
             pass
-    
-    assert len(results["data"]["class_id"])==len(results["data"]["id"])
+
+    assert len(results["data"]["class_id"]) == len(results["data"]["id"])

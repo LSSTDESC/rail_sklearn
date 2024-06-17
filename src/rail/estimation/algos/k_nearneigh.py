@@ -99,7 +99,7 @@ class KNearNeighInformer(CatInformer):
             if mkey not in knndf.keys():
                 raise KeyError(f"mag_limits dict key {mkey} not present in input data, make sure that you"
                                "have specified the mag_limits dict with the same names as your bands")
-        
+
         # replace nondetects
         # will fancy this up later with a flow to sample from truth
         for col in self.config.bands:
@@ -205,7 +205,7 @@ class KNearNeighEstimator(CatEstimator):
         dists, idxs = self.kdtree.query(testcolordata, k=self.numneigh)
         dists += TEENY
         test_ens = _makepdf(dists, idxs, self.trainszs, self.sigma)
-        
+
         zmode = test_ens.mode(grid=self.zgrid)
         test_ens.set_ancil(dict(zmode=zmode))
         self._do_chunk_output(test_ens, start, end, first)
