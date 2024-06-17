@@ -132,7 +132,7 @@ def test_bad_ref_band_knn():
             "KNN", train_algo, pz_algo, params, params)
 
 
-def tet_bad_mag_lims_knn():
+def test_bad_mag_lims_knn():
     train_algo = k_nearneigh.KNearNeighInformer
     pz_algo = k_nearneigh.KNearNeighEstimator
     with pytest.raises(KeyError):
