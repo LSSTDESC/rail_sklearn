@@ -110,17 +110,28 @@ def test_bad_inputs_knn():
     with pytest.raises(KeyError):
         params = dict(bands="u, g, r, i, z, y, fakeband")
         results, rerun_results, rerun3_results = one_algo(
-            "KNN", train_algo, pz_algo, params, params)        
+            "KNN", train_algo, pz_algo, params, params)
+
+
+def test_bad_ref_band_knn():
+    train_algo = k_nearneigh.KNearNeighInformer
+    pz_algo = k_nearneigh.KNearNeighEstimator
     with pytest.raises(ValueError):
         params = dict(ref_band="fakeband")
         results, rerun_results, rerun3_results = one_algo(
             "KNN", train_algo, pz_algo, params, params)
+
+
+def tet_bad_mag_lims_knn():
+    train_algo = k_nearneigh.KNearNeighInformer
+    pz_algo = k_nearneigh.KNearNeighEstimator
     with pytest.raises(KeyError):
         mag_limits = dict(fakeband=29., xband=30.)
         params = dict(mag_limits=mag_limits)
         results, rerun_results, rerun3_results = one_algo(
             "KNN", train_algo, pz_algo, params, params)      
-    
+
+
 def test_catch_bad_bands():
     params = dict(bands="u,g,r,i,z,y")
     with pytest.raises(ValueError):
