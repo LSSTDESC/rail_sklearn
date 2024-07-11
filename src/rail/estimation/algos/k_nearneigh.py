@@ -65,10 +65,10 @@ class KNearNeighInformer(CatInformer):
                           nneigh_min=Param(int, 3, msg="int, min number of near neighbors to use for PDF fit"),
                           nneigh_max=Param(int, 7, msg="int, max number of near neighbors to use ofr PDF fit"))
 
-    def __init__(self, args, comm=None):
+    def __init__(self, args, **kwargs):
         """ Constructor
         Do CatInformer specific initialization, then check on bands """
-        CatInformer.__init__(self, args, comm=comm)
+        super().__init__(self, args, **kwargs)
 
         usecols = self.config.bands.copy()
         usecols.append(self.config.redshift_col)
@@ -150,7 +150,7 @@ class KNearNeighEstimator(CatEstimator):
                           mag_limits=SHARED_PARAMS,
                           redshift_col=SHARED_PARAMS)
 
-    def __init__(self, args, comm=None):
+    def __init__(self, args, **kwargs):
         """ Constructor:
         Do Estimator specific initialization """
         self.sigma = None
@@ -158,7 +158,7 @@ class KNearNeighEstimator(CatEstimator):
         self.model = None
         self.trainszs = None
         self.zgrid = None
-        CatEstimator.__init__(self, args, comm=comm)
+        super().__init__(self, args, **kwargs)
         usecols = self.config.bands.copy()
         usecols.append(self.config.redshift_col)
         self.usecols = usecols

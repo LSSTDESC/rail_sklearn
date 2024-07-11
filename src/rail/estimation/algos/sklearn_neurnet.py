@@ -85,10 +85,10 @@ class SklNeurNetInformer(CatInformer):
                                           "not optimally)"))
 
 
-    def __init__(self, args, comm=None):
+    def __init__(self, args, **kwargs):
         """ Constructor:
         Do CatInformer specific initialization """
-        CatInformer.__init__(self, args, comm=comm)
+        super().__init__(self, args, **kwargs)
         if self.config.ref_band not in self.config.bands:
             raise ValueError("ref_band not present in bands list! ")
 
@@ -127,10 +127,10 @@ class SklNeurNetEstimator(CatEstimator):
                           nondetect_val=SHARED_PARAMS,
                           bands=SHARED_PARAMS)
 
-    def __init__(self, args, comm=None):
+    def __init__(self, args, **kwargs):
         """ Constructor:
         Do CatEstimator specific initialization """
-        CatEstimator.__init__(self, args, comm=comm)
+        super().__init__(self, args, **kwargs)
         if self.config.ref_band not in self.config.bands:
             raise ValueError("ref_band is not in list of bands!")
 
