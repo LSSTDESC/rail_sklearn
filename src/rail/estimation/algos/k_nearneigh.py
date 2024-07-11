@@ -68,7 +68,7 @@ class KNearNeighInformer(CatInformer):
     def __init__(self, args, **kwargs):
         """ Constructor
         Do CatInformer specific initialization, then check on bands """
-        super().__init__(self, args, **kwargs)
+        super().__init__(args, **kwargs)
 
         usecols = self.config.bands.copy()
         usecols.append(self.config.redshift_col)
@@ -158,7 +158,7 @@ class KNearNeighEstimator(CatEstimator):
         self.model = None
         self.trainszs = None
         self.zgrid = None
-        super().__init__(self, args, **kwargs)
+        super().__init__(args, **kwargs)
         usecols = self.config.bands.copy()
         usecols.append(self.config.redshift_col)
         self.usecols = usecols

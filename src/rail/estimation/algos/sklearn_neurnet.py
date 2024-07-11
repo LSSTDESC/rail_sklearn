@@ -88,7 +88,7 @@ class SklNeurNetInformer(CatInformer):
     def __init__(self, args, **kwargs):
         """ Constructor:
         Do CatInformer specific initialization """
-        super().__init__(self, args, **kwargs)
+        super().__init__(args, **kwargs)
         if self.config.ref_band not in self.config.bands:
             raise ValueError("ref_band not present in bands list! ")
 
@@ -130,7 +130,7 @@ class SklNeurNetEstimator(CatEstimator):
     def __init__(self, args, **kwargs):
         """ Constructor:
         Do CatEstimator specific initialization """
-        super().__init__(self, args, **kwargs)
+        super().__init__(args, **kwargs)
         if self.config.ref_band not in self.config.bands:
             raise ValueError("ref_band is not in list of bands!")
 

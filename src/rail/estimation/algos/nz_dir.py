@@ -121,7 +121,7 @@ class NZDirSummarizer(CatEstimator):
         self.szweights = None
         self.sz_mag_data = None
         self.bincents = None
-        super().__init__(self, args, **kwargs)
+        super().__init__(args, **kwargs)
 
     def open_model(self, **kwargs):
         CatEstimator.open_model(self, **kwargs)
