@@ -41,11 +41,6 @@ class NZDirInformer(CatInformer):
                           distance_delta=Param(float, 1.e-6, msg="padding for distance calculation"),
                           hdf5_groupname=Param(str, "photometry", msg="name of hdf5 group for data, if None, then set to ''"))
 
-    def __init__(self, args, comm=None):
-        """ Constructor:
-        Do Informer specific initialization """
-        CatInformer.__init__(self, args, comm=comm)
-
     def run(self):
         from sklearn.neighbors import NearestNeighbors
 
@@ -118,7 +113,7 @@ class NZDirSummarizer(CatEstimator):
     outputs = [('output', QPHandle),
                ('single_NZ', QPHandle)]
 
-    def __init__(self, args, comm=None):
+    def __init__(self, args, **kwargs):
         self.zgrid = None
         self.model = None
         self.distances = None
@@ -126,7 +121,7 @@ class NZDirSummarizer(CatEstimator):
         self.szweights = None
         self.sz_mag_data = None
         self.bincents = None
-        CatEstimator.__init__(self, args, comm=comm)
+        super().__init__(args, **kwargs)
 
     def open_model(self, **kwargs):
         CatEstimator.open_model(self, **kwargs)

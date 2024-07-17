@@ -38,9 +38,6 @@ class RandomForestInformer(CatInformer):
         random_seed=Param(int, msg="random seed"),
         no_assign=Param(int, -99, msg="Value for no assignment flag"),)
     outputs = [('model', ModelHandle)]
-    
-    def __init__(self, args, comm=None):
-        CatInformer.__init__(self, args, comm=comm)
         
     def run(self):
         # Load the training data
@@ -107,10 +104,6 @@ class RandomForestClassifier(CatClassifier):
         class_bands=Param(tuple, ["r","i","z"], msg="Which bands to use for classification"),
         bands=Param(dict, {"r":"mag_r_lsst", "i":"mag_i_lsst", "z":"mag_z_lsst"}, msg="column names for the the bands"),)
     outputs = [('output', Hdf5Handle)]
-    
-    def __init__(self, args, comm=None):
-        CatClassifier.__init__(self, args, comm=comm)
-            
             
     def open_model(self, **kwargs):
         CatClassifier.open_model(self, **kwargs)
