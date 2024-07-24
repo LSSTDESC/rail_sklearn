@@ -126,6 +126,7 @@ class SklNeurNetEstimator(CatEstimator):
                           ref_band=SHARED_PARAMS,
                           nondetect_val=SHARED_PARAMS,
                           bands=SHARED_PARAMS)
+                          
 
     def __init__(self, args, **kwargs):
         """ Constructor:

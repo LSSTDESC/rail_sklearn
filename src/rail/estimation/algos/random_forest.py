@@ -28,13 +28,13 @@ class randomForestmodel:
 class RandomForestInformer(CatInformer):
     """Train the random forest classifier"""
     
-    name = 'Inform_randomForestClassifier'
+    name = 'RandomForestInformer'
     config_options = CatInformer.config_options.copy()
     config_options.update(
-        class_bands=Param(tuple, ["r","i","z"], msg="Which bands to use for classification"),
+        class_bands=Param(list, ["r","i","z"], msg="Which bands to use for classification"),
         bands=Param(dict, {"r":"mag_r_lsst", "i":"mag_i_lsst", "z":"mag_z_lsst"}, msg="column names for the the bands"),
         redshift_col=Param(str, "sz", msg="Redshift column names"),
-        bin_edges=Param(tuple, [0,0.5,1.0], msg="Binning for training data"),
+        bin_edges=Param(list, [0,0.5,1.0], msg="Binning for training data"),
         random_seed=Param(int, msg="random seed"),
         no_assign=Param(int, -99, msg="Value for no assignment flag"),)
     outputs = [('model', ModelHandle)]
@@ -97,11 +97,11 @@ class RandomForestClassifier(CatClassifier):
     """Classifier that assigns tomographic 
     bins based on random forest method"""
     
-    name = 'randomForestClassifier'
+    name = 'RandomForestClassifier'
     config_options = CatClassifier.config_options.copy()
     config_options.update(
         id_name=Param(str, "", msg="Column name for the object ID in the input data, if empty the row index is used as the ID."),
-        class_bands=Param(tuple, ["r","i","z"], msg="Which bands to use for classification"),
+        class_bands=Param(list, ["r","i","z"], msg="Which bands to use for classification"),
         bands=Param(dict, {"r":"mag_r_lsst", "i":"mag_i_lsst", "z":"mag_z_lsst"}, msg="column names for the the bands"),)
     outputs = [('output', Hdf5Handle)]
             
