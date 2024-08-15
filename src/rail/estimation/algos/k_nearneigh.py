@@ -21,9 +21,10 @@ import qp
 TEENY = 1.e-15
 
 
-def _computecolordata(df, ref_column_name, column_names):
+def _computecolordata(df, ref_column_name, column_names, only_color):
     newdict = {}
-    newdict['x'] = df[ref_column_name]
+    if only_color:
+        newdict['x'] = df[ref_column_name]
     nbands = len(column_names) - 1
     for k in range(nbands):
         newdict[f'x{k}'] = df[column_names[k]] - df[column_names[k + 1]]
@@ -63,7 +64,8 @@ class KNearNeighInformer(CatInformer):
                           ngrid_sigma=Param(int, 10, msg="number of grid points in sigma check"),
                           leaf_size=Param(int, 15, msg="min leaf size for KDTree"),
                           nneigh_min=Param(int, 3, msg="int, min number of near neighbors to use for PDF fit"),
-                          nneigh_max=Param(int, 7, msg="int, max number of near neighbors to use ofr PDF fit"))
+                          nneigh_max=Param(int, 7, msg="int, max number of near neighbors to use ofr PDF fit"),
+                          only_colors=Param(bool, False, msg="if only_colors True, then do not use ref_band mag, only use colors"))
 
     def __init__(self, args, **kwargs):
         """ Constructor
@@ -91,12 +93,12 @@ class KNearNeighInformer(CatInformer):
         # will fancy this up later with a flow to sample from truth
         for col in self.config.bands:
             if np.isnan(self.config.nondetect_val):  # pragma: no cover
-                knndf.loc[np.isnan(knndf[col]), col] = self.config.mag_limits[col]
+                knndf.loc[np.isnan(knndf[col]), col] = np.float32(self.config.mag_limits[col])
             else:
-                knndf.loc[np.isclose(knndf[col], self.config.nondetect_val), col] = self.config.mag_limits[col]
+                knndf.loc[np.isclose(knndf[col], self.config.nondetect_val), col] = np.float32(self.config.mag_limits[col])
 
         trainszs = np.array(training_data[self.config.redshift_col])
-        colordata = _computecolordata(knndf, self.config.ref_band, self.config.bands)
+        colordata = _computecolordata(knndf, self.config.ref_band, self.config.bands, self.config.only_colors)
         nobs = colordata.shape[0]
         rng = np.random.default_rng(seed=self.config.seed)
         perm = rng.permutation(nobs)
@@ -148,7 +150,8 @@ class KNearNeighEstimator(CatEstimator):
                           ref_band=SHARED_PARAMS,
                           nondetect_val=SHARED_PARAMS,
                           mag_limits=SHARED_PARAMS,
-                          redshift_col=SHARED_PARAMS)
+                          redshift_col=SHARED_PARAMS,
+                          only_colors=Param(bool, False, msg="if only_colors True, then do not use ref_band mag, only use colors"))
 
     def __init__(self, args, **kwargs):
         """ Constructor:
@@ -184,15 +187,15 @@ class KNearNeighEstimator(CatEstimator):
         # will fancy this up later with a flow to sample from truth
         for col in self.config.bands:
             if np.isnan(self.config.nondetect_val):  # pragma: no cover
-                knn_df.loc[np.isnan(knn_df[col]), col] = self.config.mag_limits[col]
+                knn_df.loc[np.isnan(knn_df[col]), col] = np.float32(self.config.mag_limits[col])
             else:
-                knn_df.loc[np.isclose(knn_df[col], self.config.nondetect_val), col] = self.config.mag_limits[col]
+                knn_df.loc[np.isclose(knn_df[col], self.config.nondetect_val), col] = np.float32(self.config.mag_limits[col])
 
-        testcolordata = _computecolordata(knn_df, self.config.ref_band, self.config.bands)
+        testcolordata = _computecolordata(knn_df, self.config.ref_band, self.config.bands, self.config.only_colors)
         dists, idxs = self.kdtree.query(testcolordata, k=self.numneigh)
         dists += TEENY
         test_ens = _makepdf(dists, idxs, self.trainszs, self.sigma)
-        
+
         zmode = test_ens.mode(grid=self.zgrid)
         test_ens.set_ancil(dict(zmode=zmode))
         self._do_chunk_output(test_ens, start, end, first)
