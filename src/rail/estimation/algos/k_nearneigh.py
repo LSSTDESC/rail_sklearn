@@ -134,7 +134,11 @@ class KNearNeighInformer(CatInformer):
         print(f"\n\n\nbest fit values are sigma={sigma} and numneigh={numneigh}\n\n\n")
         # remake tree with full dataset!
         kdtree = KDTree(colordata, leaf_size=self.config.leaf_size)
-        self.model = dict(kdtree=kdtree, bestsig=sigma, nneigh=numneigh, truezs=trainszs)
+        self.model = dict(kdtree=kdtree,
+                          bestsig=sigma,
+                          nneigh=numneigh,
+                          truezs=trainszs,
+                          only_colors=self.config.only_colors)
         self.add_data('model', self.model)
 
 
@@ -150,8 +154,7 @@ class KNearNeighEstimator(CatEstimator):
                           ref_band=SHARED_PARAMS,
                           nondetect_val=SHARED_PARAMS,
                           mag_limits=SHARED_PARAMS,
-                          redshift_col=SHARED_PARAMS,
-                          only_colors=Param(bool, False, msg="if only_colors True, then do not use ref_band mag, only use colors"))
+                          redshift_col=SHARED_PARAMS)
 
     def __init__(self, args, **kwargs):
         """ Constructor:
@@ -161,6 +164,7 @@ class KNearNeighEstimator(CatEstimator):
         self.model = None
         self.trainszs = None
         self.zgrid = None
+        self.only_colors = None
         super().__init__(args, **kwargs)
         usecols = self.config.bands.copy()
         usecols.append(self.config.redshift_col)
@@ -174,6 +178,7 @@ class KNearNeighEstimator(CatEstimator):
         self.numneigh = self.model['nneigh']
         self.kdtree = self.model['kdtree']
         self.trainszs = self.model['truezs']
+        self.only_colors = self.model['only_colors']
 
     def _process_chunk(self, start, end, data, first):
         """
@@ -191,7 +196,7 @@ class KNearNeighEstimator(CatEstimator):
             else:
                 knn_df.loc[np.isclose(knn_df[col], self.config.nondetect_val), col] = np.float32(self.config.mag_limits[col])
 
-        testcolordata = _computecolordata(knn_df, self.config.ref_band, self.config.bands, self.config.only_colors)
+        testcolordata = _computecolordata(knn_df, self.config.ref_band, self.config.bands, self.only_colors)
         dists, idxs = self.kdtree.query(testcolordata, k=self.numneigh)
         dists += TEENY
         test_ens = _makepdf(dists, idxs, self.trainszs, self.sigma)

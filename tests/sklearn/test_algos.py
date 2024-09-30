@@ -136,7 +136,7 @@ def test_KNearNeigh_justcol():
         model="KNearNeighEstimator_justcols.pkl",
         only_colors=True,
     )
-    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighEstimator_justcols.pkl", only_colors=True)
+    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighEstimator_justcols.pkl")
 
     # zb_expected = np.array([0.13, 0.14, 0.13, 0.13, 0.11, 0.15, 0.13, 0.14,
     #                         0.11, 0.12])
