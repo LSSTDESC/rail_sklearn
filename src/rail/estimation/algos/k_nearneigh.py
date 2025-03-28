@@ -178,7 +178,7 @@ class KNearNeighEstimator(CatEstimator):
         self.numneigh = self.model['nneigh']
         self.kdtree = self.model['kdtree']
         self.trainszs = self.model['truezs']
-        self.only_colors = self.model['only_colors']
+        self.only_colors = self.model.get('only_colors', True)
 
     def _process_chunk(self, start, end, data, first):
         """
