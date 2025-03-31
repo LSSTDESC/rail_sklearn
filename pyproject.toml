@@ -1,6 +1,6 @@
 [project]
 name = "pz-rail-sklearn"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 readme = "README.md"
 authors = [
@@ -16,7 +16,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "pz-rail-base>=1.0.3",
+    "pz-rail-base>=1.1.4",
     "scikit-learn",
 ]
 
