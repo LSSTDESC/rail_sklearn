@@ -151,7 +151,7 @@ class NZDirSummarizer(CatEstimator):
 
         # These may be None if we are running in parallel but some of the processes
         # had no work to do. In that case some proceses never initialize these handles.
-        if self._single_handle is not None:
+        if self._single_handle is not None: # pragma: no cover
             self._single_handle.finalize_write()
             self._sample_handle.finalize_write()
 
