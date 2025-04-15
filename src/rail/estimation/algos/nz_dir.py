@@ -139,6 +139,8 @@ class NZDirSummarizer(CatEstimator):
         first = True
         self._initialize_run()
         self._output_handle = None
+        self._single_handle = None
+        self._sample_handle = None
         for s, e, test_data in iterator:
             print(f"Process {self.rank} running estimator on chunk {s} - {e}")
             if first:
@@ -146,10 +148,16 @@ class NZDirSummarizer(CatEstimator):
             chunk_number = s//self.config.chunk_size
             self._process_chunk(first, total_chunks, chunk_number, test_data, bootstrap_matrix)
             first = False
-        self._single_handle.finalize_write()
-        self._sample_handle.finalize_write()
+
+        # These may be None if we are running in parallel but some of the processes
+        # had no work to do. In that case some proceses never initialize these handles.
+        if self._single_handle is not None: # pragma: no cover
+            self._single_handle.finalize_write()
+            self._sample_handle.finalize_write()
+
         if self.comm is not None:  # pragma: no cover
             self.comm.Barrier()
+
         if self.rank == 0:
             # Joining the histograms and updating the data handles
             self.join_histograms()
