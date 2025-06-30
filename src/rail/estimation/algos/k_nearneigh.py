@@ -203,4 +203,4 @@ class KNearNeighEstimator(CatEstimator):
 
         zmode = test_ens.mode(grid=self.zgrid)
         test_ens.set_ancil(dict(zmode=zmode))
-        self._do_chunk_output(test_ens, start, end, first)
+        self._do_chunk_output(test_ens, start, end, first, data=data)
