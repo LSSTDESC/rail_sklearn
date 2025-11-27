@@ -27,6 +27,7 @@ class NZDirInformer(CatInformer):
     default_usecols = [f"mag_{band}_lsst" for band in bands]
 
     name = "NZDirInformer"
+    entrypoint_function = "estimate"  # the user-facing science function for this class
     config_options = CatInformer.config_options.copy()
     config_options.update(
         usecols=Param(
@@ -96,6 +97,7 @@ class NZDirSummarizer(CatEstimator):
     default_usecols = [f"mag_{band}_lsst" for band in bands]
 
     name = "NZDirSummarizer"
+    entrypoint_function = "estimate"  # the user-facing science function for this class
     config_options = CatEstimator.config_options.copy()
     config_options.update(
         zmin=Param(float, 0.0, msg="The minimum redshift of the z grid"),

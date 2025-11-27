@@ -43,6 +43,7 @@ class KNearNeighInformer(CatInformer):
     """Train a KNN-based estimator"""
 
     name = "KNearNeighInformer"
+    entrypoint_function = "inform"  # the user-facing science function for this class
     config_options = CatInformer.config_options.copy()
     config_options.update(
         zmin=SHARED_PARAMS,
@@ -171,6 +172,7 @@ class KNearNeighEstimator(CatEstimator):
     """KNN-based estimator"""
 
     name = "KNearNeighEstimator"
+    entrypoint_function = "estimate"  # the user-facing science function for this class
     config_options = CatEstimator.config_options.copy()
     config_options.update(
         zmin=SHARED_PARAMS,

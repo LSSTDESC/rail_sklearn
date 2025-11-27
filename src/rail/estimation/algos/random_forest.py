@@ -30,6 +30,7 @@ class RandomForestInformer(CatInformer):
     """Train the random forest classifier"""
 
     name = "RandomForestInformer"
+    entrypoint_function = "inform"  # the user-facing science function for this class
     config_options = CatInformer.config_options.copy()
     config_options.update(
         class_bands=Param(
@@ -109,6 +110,7 @@ class RandomForestClassifier(CatClassifier):
     """Classifier that assigns tomographic bins based on random forest method"""
 
     name = "RandomForestClassifier"
+    entrypoint_function = "classify"  # the user-facing science function for this class
     config_options = CatClassifier.config_options.copy()
     config_options.update(
         id_name=Param(
