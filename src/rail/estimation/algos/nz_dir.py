@@ -269,7 +269,7 @@ class NZDirSummarizer(CatEstimator):
             handle.initialize_write(npdf, communicator=self.comm)
         if self.config.output_mode == "return":
             # set up the subdictionaries in the partial_output dictionary
-            self._partial_output[tag] = {}
+            self._partial_output[handle.tag] = {}
         return handle
 
     def _do_chunk_output(self, qp_dstn, start, end, handle):
@@ -317,7 +317,7 @@ class NZDirSummarizer(CatEstimator):
             sample_ens_spread = self._sample_handle.read(force=True)
         elif self.config.output_mode == "return":
             # get data from partial_output
-            qp_d_spread = self._gather_chunked_data(self._sample_handle.tag)
+            sample_ens_spread = self._gather_chunked_data(self._sample_handle.tag)
 
         tab_samples = sample_ens_spread.build_tables()
 
