@@ -18,7 +18,7 @@ class NZDirInformer(CatInformer):
     nearneigh model of the spec-z data and some distances to N-th neighbor that will be
     used in the estimate stage.
 
-    This will create `model` a dictionary of the nearest neighboor model and params used
+    This will create `model` a dictionary of the nearest neighbor model and params used
     by estimate
 
     """
@@ -31,7 +31,7 @@ class NZDirInformer(CatInformer):
     config_options = CatInformer.config_options.copy()
     config_options.update(
         usecols=Param(
-            list, default_usecols, msg="columns from sz_data for Neighor calculation"
+            list, default_usecols, msg="columns from sz_data for Neighbor calculation"
         ),
         n_neigh=Param(int, 10, msg="number of neighbors to use"),
         kalgo=Param(str, "kd_tree", msg="Neighbor algorithm to use"),
@@ -105,7 +105,7 @@ class NZDirSummarizer(CatEstimator):
         nzbins=Param(int, 301, msg="The number of gridpoints in the z grid"),
         seed=Param(int, 87, msg="random seed"),
         usecols=Param(
-            list, default_usecols, msg="columns from sz_date for Neighor calculation"
+            list, default_usecols, msg="columns from sz_date for Neighbor calculation"
         ),
         leafsize=Param(int, 40, msg="leaf size for testdata KDTree"),
         hdf5_groupname=Param(
@@ -173,8 +173,10 @@ class NZDirSummarizer(CatEstimator):
             first = False
 
         # These may be None if we are running in parallel but some of the processes
-        # had no work to do. In that case some proceses never initialize these handles.
-        if self._single_handle is not None:  # pragma: no cover
+        # had no work to do. In that case some processes never initialize these handles.
+        if (
+            self._single_handle is not None and self.config.output_mode != "return"
+        ):  # pragma: no cover
             self._single_handle.finalize_write()
             self._sample_handle.finalize_write()
 
@@ -262,15 +264,47 @@ class NZDirSummarizer(CatEstimator):
 
     def initialize_handle(self, tag, data, npdf):
         handle = self.add_handle(tag, data=data)
-        handle.initialize_write(npdf, communicator=self.comm)
+
+        if self.config.output_mode != "return":
+            handle.initialize_write(npdf, communicator=self.comm)
+        if self.config.output_mode == "return":
+            # set up the subdictionaries in the partial_output dictionary
+            self._partial_output[tag] = {}
         return handle
 
     def _do_chunk_output(self, qp_dstn, start, end, handle):
         handle.set_data(qp_dstn, partial=True)
-        handle.write_chunk(start, end)
+
+        if self.config.output_mode != "return":
+            handle.write_chunk(start, end)
+        elif self.config.output_mode == "return":
+            # put the chunk in the partial output storage variable
+            self._partial_output[handle.tag][(start, end)] = qp_dstn
+
+    def _gather_chunked_data(self, handle_tag: str):
+        # get data from partial_output
+        chunk_keys = list(sorted(self._partial_output[handle_tag].keys()))
+        if len(chunk_keys) <= 1:
+            qp_ens = self._partial_output[handle_tag][chunk_keys[0]]
+        else:
+            # build the full ensemble from the chunks in partial_output
+            gathered_ens = []
+            for key in chunk_keys:
+                gathered_ens.append(self._partial_output[handle_tag][chunk_keys])
+            qp_ens = qp.concatenate(gathered_ens)
+
+        # clear the releveant portion of the dictionary
+        self._partial_output[handle_tag] = {}
+        return qp_ens
 
     def join_histograms(self):
-        qp_d_spread = self._single_handle.read(force=True)
+
+        if self.config.output_mode != "return":
+            qp_d_spread = self._single_handle.read(force=True)
+        elif self.config.output_mode == "return":
+            # get data from partial_output
+            qp_d_spread = self._gather_chunked_data(self._single_handle.tag)
+
         tab_single = qp_d_spread.build_tables()
 
         hist_single = np.zeros(self.config.nzbins)
@@ -279,7 +313,12 @@ class NZDirSummarizer(CatEstimator):
         for i in range(total_chunks):
             hist_single += tab_single["data"]["pdfs"][i] * normalization[i]
 
-        sample_ens_spread = self._sample_handle.read(force=True)
+        if self.config.output_mode != "return":
+            sample_ens_spread = self._sample_handle.read(force=True)
+        elif self.config.output_mode == "return":
+            # get data from partial_output
+            qp_d_spread = self._gather_chunked_data(self._sample_handle.tag)
+
         tab_samples = sample_ens_spread.build_tables()
 
         nsamp = self.config.nsamples
@@ -297,5 +336,7 @@ class NZDirSummarizer(CatEstimator):
         )
         self._single_handle.set_data(qp_d)
         self._sample_handle.set_data(sample_ens)
-        self._single_handle.write()
-        self._sample_handle.write()
+
+        if self.config.output_mode != "return":
+            self._single_handle.write()
+            self._sample_handle.write()
