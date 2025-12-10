@@ -27,7 +27,7 @@ class NZDirInformer(CatInformer):
     default_usecols = [f"mag_{band}_lsst" for band in bands]
 
     name = "NZDirInformer"
-    entrypoint_function = "estimate"  # the user-facing science function for this class
+    entrypoint_function = "inform"  # the user-facing science function for this class
     config_options = CatInformer.config_options.copy()
     config_options.update(
         usecols=Param(
