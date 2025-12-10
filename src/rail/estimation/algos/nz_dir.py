@@ -28,6 +28,7 @@ class NZDirInformer(CatInformer):
 
     name = "NZDirInformer"
     entrypoint_function = "inform"  # the user-facing science function for this class
+    interactive_function = "nz_dir_informer"
     config_options = CatInformer.config_options.copy()
     config_options.update(
         usecols=Param(
@@ -98,6 +99,7 @@ class NZDirSummarizer(CatEstimator):
 
     name = "NZDirSummarizer"
     entrypoint_function = "estimate"  # the user-facing science function for this class
+    interactive_function = "nz_dir_summarizer"
     config_options = CatEstimator.config_options.copy()
     config_options.update(
         zmin=Param(float, 0.0, msg="The minimum redshift of the z grid"),

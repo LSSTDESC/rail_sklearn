@@ -69,6 +69,7 @@ class SklNeurNetInformer(CatInformer):
 
     name = "SklNeurNetInformer"
     entrypoint_function = "inform"  # the user-facing science function for this class
+    interactive_function = "skl_neur_net_informer"
     config_options = CatInformer.config_options.copy()
     config_options.update(
         zmin=SHARED_PARAMS,
@@ -135,6 +136,7 @@ class SklNeurNetEstimator(CatEstimator):
 
     name = "SklNeurNetEstimator"
     entrypoint_function = "estimate"  # the user-facing science function for this class
+    interactive_function = "skl_neur_net_estimator"
     config_options = CatEstimator.config_options.copy()
     config_options.update(
         width=Param(float, 0.05, msg="The ad hoc base width of the PDFs"),
