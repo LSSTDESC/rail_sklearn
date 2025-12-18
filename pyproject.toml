@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python",
 ]
 dynamic = ["version"]
-dependencies = ["pz-rail-base>=2.0.0", "scikit-learn"]
+dependencies = ["pz-rail-base>=2.0.0-dev", "scikit-learn"]
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]
