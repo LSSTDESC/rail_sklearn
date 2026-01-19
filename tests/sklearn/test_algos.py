@@ -13,10 +13,6 @@ from rail.estimation.algos import k_nearneigh, random_forest, sklearn_neurnet
 sci_ver_str = scipy.__version__.split(".")
 
 
-# DS = RailStage.data_store
-# DS.__class__.allow_overwrite = True
-
-
 def test_simple_nn():
     train_config_dict = {
         "width": 0.025,
@@ -100,10 +96,9 @@ def test_same_data_knn():
     traindata = os.path.join(
         RAILDIR, "rail/examples_data/testdata/training_100gal.hdf5"
     )
-    # DS = RailStage.data_store
-    # DS.__class__.allow_overwrite = True
+
     training_data = TableHandle("training_data", path=traindata)
-    # training_data = DS.read_file("training_data", TableHandle, traindata)
+
     trainer = k_nearneigh.KNearNeighInformer.make_stage(
         name="same_train", **train_config_dict
     )
@@ -232,13 +227,8 @@ def test_randomForestClassifier_id():
         RAILDIR, "rail/examples_data/testdata/validation_10gal.hdf5"
     )
 
-    # DS = RailStage.data_store
-    # DS.__class__.allow_overwrite = True
-    # DS.clear()
     training_data = TableHandle("training_data", path=traindata)
     validation_data = TableHandle("validation_data", path=validdata)
-    # training_data = DS.read_file("training_data", TableHandle, traindata)
-    # validation_data = DS.read_file("validation_data", TableHandle, validdata)
 
     train_pz = train_algo.make_stage(**train_config_dict)
     train_pz.inform(training_data)
