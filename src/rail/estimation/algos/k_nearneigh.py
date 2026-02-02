@@ -44,7 +44,7 @@ class KNearNeighInformer(CatInformer):
 
     name = "KNearNeighInformer"
     entrypoint_function = "inform"  # the user-facing science function for this class
-    interactive_function = "k_near_neig_informer"
+    interactive_function = "k_near_neigh_informer"
     config_options = CatInformer.config_options.copy()
     config_options.update(
         zmin=SHARED_PARAMS,
@@ -174,7 +174,7 @@ class KNearNeighEstimator(CatEstimator):
 
     name = "KNearNeighEstimator"
     entrypoint_function = "estimate"  # the user-facing science function for this class
-    interactive_function = "k_near_neig_estimator"
+    interactive_function = "k_near_neigh_estimator"
     config_options = CatEstimator.config_options.copy()
     config_options.update(
         zmin=SHARED_PARAMS,
