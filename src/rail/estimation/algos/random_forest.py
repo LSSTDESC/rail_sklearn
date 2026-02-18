@@ -6,20 +6,21 @@ Note: extra dependence on sklearn and input training file.
 """
 
 from collections import OrderedDict
+
 import numpy as np
 from ceci.config import StageParameter as Param
+from rail.core.common_params import SHARED_PARAMS
+from rail.core.data import Hdf5Handle, ModelHandle, TableHandle
 from rail.estimation.classifier import CatClassifier
 from rail.estimation.informer import CatInformer
-from rail.core.data import TableHandle, ModelHandle, Hdf5Handle
 from sklearn.ensemble import RandomForestClassifier as skl_RandomForestClassifier
-
-from rail.core.common_params import SHARED_PARAMS
 
 
 class randomForestmodel:
     """
     Temporary class to store the trained model.
     """
+
     def __init__(self, skl_classifier, features):
         self.skl_classifier = skl_classifier
         self.features = features
@@ -27,43 +28,56 @@ class randomForestmodel:
 
 class RandomForestInformer(CatInformer):
     """Train the random forest classifier"""
-    
-    name = 'RandomForestInformer'
+
+    name = "RandomForestInformer"
+    entrypoint_function = "inform"  # the user-facing science function for this class
+    interactive_function = "random_forest_informer"
     config_options = CatInformer.config_options.copy()
     config_options.update(
-        class_bands=Param(list, ["r","i","z"], msg="Which bands to use for classification"),
-        bands=Param(dict, {"r":"mag_r_lsst", "i":"mag_i_lsst", "z":"mag_z_lsst"}, msg="column names for the the bands"),
+        class_bands=Param(
+            list, ["r", "i", "z"], msg="Which bands to use for classification"
+        ),
+        bands=Param(
+            dict,
+            {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"},
+            msg="column names for the the bands",
+        ),
         redshift_col=Param(str, "sz", msg="Redshift column names"),
-        bin_edges=Param(list, [0,0.5,1.0], msg="Binning for training data"),
+        bin_edges=Param(list, [0, 0.5, 1.0], msg="Binning for training data"),
         random_seed=Param(int, msg="random seed"),
-        no_assign=Param(int, -99, msg="Value for no assignment flag"),)
-    outputs = [('model', ModelHandle)]
-        
+        no_assign=Param(int, -99, msg="Value for no assignment flag"),
+    )
+    outputs = [("model", ModelHandle)]
+
     def run(self):
         # Load the training data
         if self.config.hdf5_groupname:
-            training_data_table = self.get_data('input')[self.config.hdf5_groupname]
+            training_data_table = self.get_data("input")[self.config.hdf5_groupname]
         else:  # pragma: no cover
-            training_data_table = self.get_data('input')
+            training_data_table = self.get_data("input")
 
         # Pull out the appropriate columns and combinations of the data
-        print(f"Using these bands to train the tomography selector: {self.config.bands}")
-        
+        print(
+            f"Using these bands to train the tomography selector: {self.config.bands}"
+        )
+
         # Generate the training data that we will use
         # We record both the name of the column and the data itself
         features = []
         training_data = []
         for b1 in self.config.class_bands[:]:
-            b1_cat=self.config.bands[b1]
+            b1_cat = self.config.bands[b1]
             # First we use the magnitudes themselves
             features.append(b1)
             training_data.append(training_data_table[b1_cat])
             # We also use the colours as training data, even the redundant ones
             for b2 in self.config.class_bands[:]:
-                b2_cat=self.config.bands[b2]
+                b2_cat = self.config.bands[b2]
                 if b1 < b2:
                     features.append(f"{b1}-{b2}")
-                    training_data.append(training_data_table[b1_cat] - training_data_table[b2_cat])
+                    training_data.append(
+                        training_data_table[b1_cat] - training_data_table[b2_cat]
+                    )
         training_data = np.array(training_data).T
 
         print("Training data for bin classifier has shape ", training_data.shape)
@@ -88,23 +102,35 @@ class RandomForestInformer(CatInformer):
         )
         skl_classifier.fit(training_data, training_bin)
 
-        #return classifier, features
+        # return classifier, features
         self.model = randomForestmodel(skl_classifier, features)
-        self.add_data('model', self.model)
-        
+        self.add_data("model", self.model)
+
 
 class RandomForestClassifier(CatClassifier):
-    """Classifier that assigns tomographic 
-    bins based on random forest method"""
-    
-    name = 'RandomForestClassifier'
+    """Classifier that assigns tomographic bins based on random forest method"""
+
+    name = "RandomForestClassifier"
+    entrypoint_function = "classify"  # the user-facing science function for this class
+    interactive_function = "random_forest_classifier"
     config_options = CatClassifier.config_options.copy()
     config_options.update(
-        id_name=Param(str, "", msg="Column name for the object ID in the input data, if empty the row index is used as the ID."),
-        class_bands=Param(list, ["r","i","z"], msg="Which bands to use for classification"),
-        bands=Param(dict, {"r":"mag_r_lsst", "i":"mag_i_lsst", "z":"mag_z_lsst"}, msg="column names for the the bands"),)
-    outputs = [('output', Hdf5Handle)]
-            
+        id_name=Param(
+            str,
+            "",
+            msg="Column name for the object ID in the input data, if empty the row index is used as the ID.",
+        ),
+        class_bands=Param(
+            list, ["r", "i", "z"], msg="Which bands to use for classification"
+        ),
+        bands=Param(
+            dict,
+            {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"},
+            msg="column names for the the bands",
+        ),
+    )
+    outputs = [("output", Hdf5Handle)]
+
     def open_model(self, **kwargs):
         CatClassifier.open_model(self, **kwargs)
         if self.model is None:  # pragma: no cover
@@ -112,27 +138,26 @@ class RandomForestClassifier(CatClassifier):
         self.skl_classifier = self.model.skl_classifier
         self.features = self.model.features
 
-    
     def run(self):
         """Apply the classifier to the measured magnitudes"""
-        
+
         if self.config.hdf5_groupname:
-            test_data = self.get_data('input')[self.config.hdf5_groupname]
+            test_data = self.get_data("input")[self.config.hdf5_groupname]
         else:  # pragma: no cover
-            test_data = self.get_data('input')
-        
+            test_data = self.get_data("input")
+
         data = []
         for f in self.features:
             # may be a single band
             if len(f) == 1:
-                f_cat=self.config.bands[f]
+                f_cat = self.config.bands[f]
                 col = test_data[f_cat]
             # or a colour
             else:
                 b1, b2 = f.split("-")
-                b1_cat=self.config.bands[b1]
-                b2_cat=self.config.bands[b2]
-                col = (test_data[b1_cat] - test_data[b2_cat])
+                b1_cat = self.config.bands[b1]
+                b2_cat = self.config.bands[b2]
+                col = test_data[b1_cat] - test_data[b2_cat]
             if np.all(~np.isfinite(col)):
                 # entire column is NaN.  Hopefully this will get deselected elsewhere
                 col[:] = 30.0
@@ -151,9 +176,11 @@ class RandomForestClassifier(CatClassifier):
             obj_id = test_data[self.config.id_name]
         elif self.config.id_name == "":
             # ID set to row index
-            b=self.config.bands[self.config.class_bands[0]]
+            b = self.config.bands[self.config.class_bands[0]]
             obj_id = np.arange(len(test_data[b]))
-            self.config.id_name="row_index"
-        
-        class_id = dict(data=OrderedDict([(self.config.id_name, obj_id), ("class_id", bin_index)]))
-        self.add_data('output', class_id)
+            self.config.id_name = "row_index"
+
+        class_id = dict(
+            data=OrderedDict([(self.config.id_name, obj_id), ("class_id", bin_index)])
+        )
+        self.add_data("output", class_id)

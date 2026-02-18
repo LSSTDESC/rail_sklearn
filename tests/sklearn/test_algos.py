@@ -1,19 +1,16 @@
-import numpy as np
 import os
+
+import numpy as np
 import pytest
 import scipy.special
-
-from rail.utils.testing_utils import one_algo
+from rail.core.data import TableHandle
 from rail.core.stage import RailStage
 from rail.utils.path_utils import RAILDIR
-from rail.core.data import TableHandle
-from rail.estimation.algos import k_nearneigh, sklearn_neurnet, random_forest
+from rail.utils.testing_utils import one_algo
+
+from rail.estimation.algos import k_nearneigh, random_forest, sklearn_neurnet
 
 sci_ver_str = scipy.__version__.split(".")
-
-
-DS = RailStage.data_store
-DS.__class__.allow_overwrite = True
 
 
 def test_simple_nn():
@@ -71,7 +68,9 @@ def test_KNearNeigh():
         hdf5_groupname="photometry",
         model="KNearNeighEstimator.pkl",
     )
-    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighEstimator.pkl")
+    estim_config_dict = dict(
+        hdf5_groupname="photometry", model="KNearNeighEstimator.pkl"
+    )
 
     # zb_expected = np.array([0.13, 0.14, 0.13, 0.13, 0.11, 0.15, 0.13, 0.14,
     #                         0.11, 0.12])
@@ -87,22 +86,30 @@ def test_KNearNeigh():
 # test for k=1 when data point has same value, used to cause errors because of
 # a divide by zero, should be fixed now but add a test
 def test_same_data_knn():
-    train_config_dict = dict(hdf5_groupname="photometry",
-                             model="KNearNeighEstimator.pkl")
-    estim_config_dict = dict(hdf5_groupname="photometry",
-                             model="KNearNeighEstimator.pkl")
+    train_config_dict = dict(
+        hdf5_groupname="photometry", model="KNearNeighEstimator.pkl"
+    )
+    estim_config_dict = dict(
+        hdf5_groupname="photometry", model="KNearNeighEstimator.pkl"
+    )
 
-    traindata = os.path.join(RAILDIR, 'rail/examples_data/testdata/training_100gal.hdf5')
-    DS = RailStage.data_store
-    DS.__class__.allow_overwrite = True
-    training_data = DS.read_file('training_data', TableHandle, traindata)
-    trainer = k_nearneigh.KNearNeighInformer.make_stage(name='same_train', **train_config_dict)
+    traindata = os.path.join(
+        RAILDIR, "rail/examples_data/testdata/training_100gal.hdf5"
+    )
+
+    training_data = TableHandle("training_data", path=traindata)
+
+    trainer = k_nearneigh.KNearNeighInformer.make_stage(
+        name="same_train", **train_config_dict
+    )
     trainer.inform(training_data)
-    pz = k_nearneigh.KNearNeighEstimator.make_stage(name='same_estim', **estim_config_dict)
+    pz = k_nearneigh.KNearNeighEstimator.make_stage(
+        name="same_estim", **estim_config_dict
+    )
     estim = pz.estimate(training_data)  # run estimate on same input file
-    modes = estim().ancil['zmode']
+    modes = estim().ancil["zmode"]
     assert ~(np.isnan(modes).all())
-    os.remove(pz.get_output(pz.get_aliased_tag('output'), final_name=True))
+    os.remove(pz.get_output(pz.get_aliased_tag("output"), final_name=True))
 
 
 def test_KNearNeigh_justcol():
@@ -136,7 +143,9 @@ def test_KNearNeigh_justcol():
         model="KNearNeighEstimator_justcols.pkl",
         only_colors=True,
     )
-    estim_config_dict = dict(hdf5_groupname="photometry", model="KNearNeighEstimator_justcols.pkl")
+    estim_config_dict = dict(
+        hdf5_groupname="photometry", model="KNearNeighEstimator_justcols.pkl"
+    )
 
     # zb_expected = np.array([0.13, 0.14, 0.13, 0.13, 0.11, 0.15, 0.13, 0.14,
     #                         0.11, 0.12])
@@ -177,10 +186,16 @@ def test_randomForestClassifier():
     train_algo = random_forest.RandomForestInformer
     tomo_algo = random_forest.RandomForestClassifier
     results, rerun_results, rerun3_results = one_algo(
-        "randomForestClassifier", train_algo, tomo_algo, train_config_dict, estim_config_dict,
+        "randomForestClassifier",
+        train_algo,
+        tomo_algo,
+        train_config_dict,
+        estim_config_dict,
         is_classifier=True,
     )
-    assert np.isclose(results["data"]["class_id"], rerun_results["data"]["class_id"]).all()
+    assert np.isclose(
+        results["data"]["class_id"], rerun_results["data"]["class_id"]
+    ).all()
     assert len(results["data"]["class_id"]) == len(results["data"]["row_index"])
 
 
@@ -198,19 +213,22 @@ def test_randomForestClassifier_id():
         hdf5_groupname="photometry",
         model="model.tmp",
     )
-    estim_config_dict = dict(hdf5_groupname="photometry", model="model.tmp", id_name="id")
+    estim_config_dict = dict(
+        hdf5_groupname="photometry", model="model.tmp", id_name="id"
+    )
 
     train_algo = random_forest.RandomForestInformer
     tomo_algo = random_forest.RandomForestClassifier
 
-    traindata = os.path.join(RAILDIR, 'rail/examples_data/testdata/training_100gal.hdf5')
-    validdata = os.path.join(RAILDIR, 'rail/examples_data/testdata/validation_10gal.hdf5')
+    traindata = os.path.join(
+        RAILDIR, "rail/examples_data/testdata/training_100gal.hdf5"
+    )
+    validdata = os.path.join(
+        RAILDIR, "rail/examples_data/testdata/validation_10gal.hdf5"
+    )
 
-    DS = RailStage.data_store
-    DS.__class__.allow_overwrite = True
-    DS.clear()
-    training_data = DS.read_file('training_data', TableHandle, traindata)
-    validation_data = DS.read_file('validation_data', TableHandle, validdata)
+    training_data = TableHandle("training_data", path=traindata)
+    validation_data = TableHandle("validation_data", path=validdata)
 
     train_pz = train_algo.make_stage(**train_config_dict)
     train_pz.inform(training_data)
@@ -218,9 +236,9 @@ def test_randomForestClassifier_id():
     estim = pz.classify(training_data)
     results = estim.data
 
-    os.remove(pz.get_output(pz.get_aliased_tag('output'), final_name=True))
-    model_file = estim_config_dict.get('model', 'None')
-    if model_file != 'None':
+    os.remove(pz.get_output(pz.get_aliased_tag("output"), final_name=True))
+    model_file = estim_config_dict.get("model", "None")
+    if model_file != "None":
         try:
             os.remove(model_file)
         except FileNotFoundError:  # pragma: no cover

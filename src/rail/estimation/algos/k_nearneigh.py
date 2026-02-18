@@ -5,29 +5,26 @@ things in terms of magnitudes, we will expand in a
 future update
 """
 
-import numpy as np
 import copy
 
-from ceci.config import StageParameter as Param
-from rail.estimation.estimator import CatEstimator, CatInformer
-
-from rail.evaluation.metrics.cdeloss import CDELoss
-from rail.core.common_params import SHARED_PARAMS
-
+import numpy as np
 import pandas as pd
 import qp
+from ceci.config import StageParameter as Param
+from rail.core.common_params import SHARED_PARAMS
+from rail.estimation.estimator import CatEstimator, CatInformer
+from rail.evaluation.metrics.cdeloss import CDELoss
 
-
-TEENY = 1.e-15
+TEENY = 1.0e-15
 
 
 def _computecolordata(df, ref_column_name, column_names, only_color):
     newdict = {}
     if only_color:
-        newdict['x'] = df[ref_column_name]
+        newdict["x"] = df[ref_column_name]
     nbands = len(column_names) - 1
     for k in range(nbands):
-        newdict[f'x{k}'] = df[column_names[k]] - df[column_names[k + 1]]
+        newdict[f"x{k}"] = df[column_names[k]] - df[column_names[k + 1]]
     newdf = pd.DataFrame(newdict)
     coldata = newdf.to_numpy()
     return coldata
@@ -35,7 +32,7 @@ def _computecolordata(df, ref_column_name, column_names, only_color):
 
 def _makepdf(dists, ids, szs, sigma):
     sigmas = np.full_like(dists, sigma)
-    weights = 1. / dists
+    weights = 1.0 / dists
     weights /= weights.sum(axis=1, keepdims=True)
     means = szs[ids]
     pdfs = qp.Ensemble(qp.mixmod, data=dict(means=means, stds=sigmas, weights=weights))
@@ -43,33 +40,48 @@ def _makepdf(dists, ids, szs, sigma):
 
 
 class KNearNeighInformer(CatInformer):
-    """Train a KNN-based estimator
-    """
-    name = 'KNearNeighInformer'
+    """Train a KNN-based estimator"""
+
+    name = "KNearNeighInformer"
+    entrypoint_function = "inform"  # the user-facing science function for this class
+    interactive_function = "k_near_neigh_informer"
     config_options = CatInformer.config_options.copy()
-    config_options.update(zmin=SHARED_PARAMS,
-                          zmax=SHARED_PARAMS,
-                          nzbins=SHARED_PARAMS,
-                          nondetect_val=SHARED_PARAMS,
-                          mag_limits=SHARED_PARAMS,
-                          bands=SHARED_PARAMS,
-                          ref_band=SHARED_PARAMS,
-                          redshift_col=SHARED_PARAMS,
-                          hdf5_groupname=SHARED_PARAMS,
-                          trainfrac=Param(float, 0.75,
-                                          msg="fraction of training data used to make tree, rest used to set best sigma"),
-                          seed=Param(int, 0, msg="Random number seed for NN training"),
-                          sigma_grid_min=Param(float, 0.01, msg="minimum value of sigma for grid check"),
-                          sigma_grid_max=Param(float, 0.075, msg="maximum value of sigma for grid check"),
-                          ngrid_sigma=Param(int, 10, msg="number of grid points in sigma check"),
-                          leaf_size=Param(int, 15, msg="min leaf size for KDTree"),
-                          nneigh_min=Param(int, 3, msg="int, min number of near neighbors to use for PDF fit"),
-                          nneigh_max=Param(int, 7, msg="int, max number of near neighbors to use ofr PDF fit"),
-                          only_colors=Param(bool, False, msg="if only_colors True, then do not use ref_band mag, only use colors"))
+    config_options.update(
+        zmin=SHARED_PARAMS,
+        zmax=SHARED_PARAMS,
+        nzbins=SHARED_PARAMS,
+        nondetect_val=SHARED_PARAMS,
+        mag_limits=SHARED_PARAMS,
+        bands=SHARED_PARAMS,
+        ref_band=SHARED_PARAMS,
+        redshift_col=SHARED_PARAMS,
+        hdf5_groupname=SHARED_PARAMS,
+        trainfrac=Param(
+            float,
+            0.75,
+            msg="fraction of training data used to make tree, rest used to set best sigma",
+        ),
+        seed=Param(int, 0, msg="Random number seed for NN training"),
+        sigma_grid_min=Param(float, 0.01, msg="minimum value of sigma for grid check"),
+        sigma_grid_max=Param(float, 0.075, msg="maximum value of sigma for grid check"),
+        ngrid_sigma=Param(int, 10, msg="number of grid points in sigma check"),
+        leaf_size=Param(int, 15, msg="min leaf size for KDTree"),
+        nneigh_min=Param(
+            int, 3, msg="int, min number of near neighbors to use for PDF fit"
+        ),
+        nneigh_max=Param(
+            int, 7, msg="int, max number of near neighbors to use ofr PDF fit"
+        ),
+        only_colors=Param(
+            bool,
+            False,
+            msg="if only_colors True, then do not use ref_band mag, only use colors",
+        ),
+    )
 
     def __init__(self, args, **kwargs):
-        """ Constructor
-        Do CatInformer specific initialization, then check on bands """
+        """Constructor
+        Do CatInformer specific initialization, then check on bands"""
         super().__init__(args, **kwargs)
 
         usecols = self.config.bands.copy()
@@ -82,10 +94,11 @@ class KNearNeighInformer(CatInformer):
         train a KDTree on a fraction of the training data
         """
         from sklearn.neighbors import KDTree
+
         if self.config.hdf5_groupname:
-            training_data = self.get_data('input')[self.config.hdf5_groupname]
+            training_data = self.get_data("input")[self.config.hdf5_groupname]
         else:  # pragma: no cover
-            training_data = self.get_data('input')
+            training_data = self.get_data("input")
         knndf = pd.DataFrame(training_data, columns=self.config.bands)
         self.zgrid = np.linspace(self.config.zmin, self.config.zmax, self.config.nzbins)
 
@@ -93,12 +106,18 @@ class KNearNeighInformer(CatInformer):
         # will fancy this up later with a flow to sample from truth
         for col in self.config.bands:
             if np.isnan(self.config.nondetect_val):  # pragma: no cover
-                knndf.loc[np.isnan(knndf[col]), col] = np.float32(self.config.mag_limits[col])
+                knndf.loc[np.isnan(knndf[col]), col] = np.float32(
+                    self.config.mag_limits[col]
+                )
             else:
-                knndf.loc[np.isclose(knndf[col], self.config.nondetect_val), col] = np.float32(self.config.mag_limits[col])
+                knndf.loc[np.isclose(knndf[col], self.config.nondetect_val), col] = (
+                    np.float32(self.config.mag_limits[col])
+                )
 
         trainszs = np.array(training_data[self.config.redshift_col])
-        colordata = _computecolordata(knndf, self.config.ref_band, self.config.bands, self.config.only_colors)
+        colordata = _computecolordata(
+            knndf, self.config.ref_band, self.config.bands, self.config.only_colors
+        )
         nobs = colordata.shape[0]
         rng = np.random.default_rng(seed=self.config.seed)
         perm = rng.permutation(nobs)
@@ -109,13 +128,19 @@ class KNearNeighInformer(CatInformer):
         xtrain_sz = trainszs[perm[:ntrain]].copy()
         train_sz = np.array(copy.deepcopy(xtrain_sz))
         val_sz = np.array(trainszs[perm[ntrain:]])
-        print(f"split into {len(train_sz)} training and {len(val_sz)} validation samples")
+        print(
+            f"split into {len(train_sz)} training and {len(val_sz)} validation samples"
+        )
         tmpmodel = KDTree(train_data, leaf_size=self.config.leaf_size)
         # Find best sigma and n_neigh by minimizing CDE Loss
         bestloss = 1e20
         bestsig = self.config.sigma_grid_min
         bestnn = self.config.nneigh_min
-        siggrid = np.linspace(self.config.sigma_grid_min, self.config.sigma_grid_max, self.config.ngrid_sigma)
+        siggrid = np.linspace(
+            self.config.sigma_grid_min,
+            self.config.sigma_grid_max,
+            self.config.ngrid_sigma,
+        )
         print("finding best fit sigma and NNeigh...")
         for sig in siggrid:
             for nn in range(self.config.nneigh_min, self.config.nneigh_max + 1):
@@ -134,31 +159,37 @@ class KNearNeighInformer(CatInformer):
         print(f"\n\n\nbest fit values are sigma={sigma} and numneigh={numneigh}\n\n\n")
         # remake tree with full dataset!
         kdtree = KDTree(colordata, leaf_size=self.config.leaf_size)
-        self.model = dict(kdtree=kdtree,
-                          bestsig=sigma,
-                          nneigh=numneigh,
-                          truezs=trainszs,
-                          only_colors=self.config.only_colors)
-        self.add_data('model', self.model)
+        self.model = dict(
+            kdtree=kdtree,
+            bestsig=sigma,
+            nneigh=numneigh,
+            truezs=trainszs,
+            only_colors=self.config.only_colors,
+        )
+        self.add_data("model", self.model)
 
 
 class KNearNeighEstimator(CatEstimator):
-    """KNN-based estimator
-    """
-    name = 'KNearNeighEstimator'
+    """KNN-based estimator"""
+
+    name = "KNearNeighEstimator"
+    entrypoint_function = "estimate"  # the user-facing science function for this class
+    interactive_function = "k_near_neigh_estimator"
     config_options = CatEstimator.config_options.copy()
-    config_options.update(zmin=SHARED_PARAMS,
-                          zmax=SHARED_PARAMS,
-                          nzbins=SHARED_PARAMS,
-                          bands=SHARED_PARAMS,
-                          ref_band=SHARED_PARAMS,
-                          nondetect_val=SHARED_PARAMS,
-                          mag_limits=SHARED_PARAMS,
-                          redshift_col=SHARED_PARAMS)
+    config_options.update(
+        zmin=SHARED_PARAMS,
+        zmax=SHARED_PARAMS,
+        nzbins=SHARED_PARAMS,
+        bands=SHARED_PARAMS,
+        ref_band=SHARED_PARAMS,
+        nondetect_val=SHARED_PARAMS,
+        mag_limits=SHARED_PARAMS,
+        redshift_col=SHARED_PARAMS,
+    )
 
     def __init__(self, args, **kwargs):
-        """ Constructor:
-        Do Estimator specific initialization """
+        """Constructor:
+        Do Estimator specific initialization"""
         self.sigma = None
         self.numneigh = None
         self.model = None
@@ -172,13 +203,13 @@ class KNearNeighEstimator(CatEstimator):
 
     def open_model(self, **kwargs):
         CatEstimator.open_model(self, **kwargs)
-        if self.model is None:   # pragma: no cover
+        if self.model is None:  # pragma: no cover
             return
-        self.sigma = self.model['bestsig']
-        self.numneigh = self.model['nneigh']
-        self.kdtree = self.model['kdtree']
-        self.trainszs = self.model['truezs']
-        self.only_colors = self.model.get('only_colors', True)
+        self.sigma = self.model["bestsig"]
+        self.numneigh = self.model["nneigh"]
+        self.kdtree = self.model["kdtree"]
+        self.trainszs = self.model["truezs"]
+        self.only_colors = self.model.get("only_colors", True)
 
     def _process_chunk(self, start, end, data, first):
         """
@@ -192,11 +223,17 @@ class KNearNeighEstimator(CatEstimator):
         # will fancy this up later with a flow to sample from truth
         for col in self.config.bands:
             if np.isnan(self.config.nondetect_val):  # pragma: no cover
-                knn_df.loc[np.isnan(knn_df[col]), col] = np.float32(self.config.mag_limits[col])
+                knn_df.loc[np.isnan(knn_df[col]), col] = np.float32(
+                    self.config.mag_limits[col]
+                )
             else:
-                knn_df.loc[np.isclose(knn_df[col], self.config.nondetect_val), col] = np.float32(self.config.mag_limits[col])
+                knn_df.loc[np.isclose(knn_df[col], self.config.nondetect_val), col] = (
+                    np.float32(self.config.mag_limits[col])
+                )
 
-        testcolordata = _computecolordata(knn_df, self.config.ref_band, self.config.bands, self.only_colors)
+        testcolordata = _computecolordata(
+            knn_df, self.config.ref_band, self.config.bands, self.only_colors
+        )
         dists, idxs = self.kdtree.query(testcolordata, k=self.numneigh)
         dists += TEENY
         test_ens = _makepdf(dists, idxs, self.trainszs, self.sigma)
