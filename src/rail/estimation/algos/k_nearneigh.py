@@ -56,7 +56,7 @@ class KNearNeighInformer(CatInformer):
         ref_band=SHARED_PARAMS,
         redshift_col=SHARED_PARAMS,
         hdf5_groupname=SHARED_PARAMS,
-        trainfrac=Param(
+        train_frac=Param(
             float,
             0.75,
             msg="fraction of training data used to make tree, rest used to set best sigma",
@@ -121,7 +121,7 @@ class KNearNeighInformer(CatInformer):
         nobs = colordata.shape[0]
         rng = np.random.default_rng(seed=self.config.seed)
         perm = rng.permutation(nobs)
-        ntrain = round(nobs * self.config.trainfrac)
+        ntrain = round(nobs * self.config.train_frac)
         xtrain_data = colordata[perm[:ntrain]]
         train_data = copy.deepcopy(xtrain_data)
         val_data = colordata[perm[ntrain:]]

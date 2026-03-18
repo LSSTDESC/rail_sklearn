@@ -53,8 +53,8 @@ def test_KNearNeigh():
         zmin=0.0,
         zmax=3.0,
         nzbins=301,
-        trainfrac=0.75,
-        random_seed=87,
+        train_frac=0.75,
+        seed=87,
         ref_column_name="mag_i_lsst",
         column_names=refcols,
         mag_limits=def_maglims,
@@ -127,8 +127,8 @@ def test_KNearNeigh_justcol():
         zmin=0.0,
         zmax=3.0,
         nzbins=301,
-        trainfrac=0.75,
-        random_seed=87,
+        train_frac=0.75,
+        seed=87,
         ref_column_name="mag_i_lsst",
         column_names=refcols,
         mag_limits=def_maglims,
@@ -168,15 +168,15 @@ def test_catch_bad_bands():
 
 def test_randomForestClassifier():
     class_bands = ["r", "i", "z"]
-    bands = {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"}
+    band_map = {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"}
     bin_edges = [0, 0.2, 0.5]
 
     train_config_dict = dict(
         class_bands=class_bands,
-        bands=bands,
+        band_map=band_map,
         redshift_col="redshift",
         bin_edges=bin_edges,
-        random_seed=10,
+        seed=10,
         hdf5_groupname="photometry",
         model="model.tmp",
     )
@@ -201,15 +201,15 @@ def test_randomForestClassifier():
 
 def test_randomForestClassifier_id():
     class_bands = ["r", "i", "z"]
-    bands = {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"}
+    band_map = {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"}
     bin_edges = [0, 0.2, 0.5]
 
     train_config_dict = dict(
         class_bands=class_bands,
-        bands=bands,
+        band_map=band_map,
         redshift_col="redshift",
         bin_edges=bin_edges,
-        random_seed=10,
+        seed=10,
         hdf5_groupname="photometry",
         model="model.tmp",
     )
