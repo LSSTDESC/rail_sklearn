@@ -37,14 +37,14 @@ class RandomForestInformer(CatInformer):
         class_bands=Param(
             list, ["r", "i", "z"], msg="Which bands to use for classification"
         ),
-        bands=Param(
+        band_map=Param(
             dict,
             {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"},
             msg="column names for the the bands",
         ),
         redshift_col=Param(str, "sz", msg="Redshift column names"),
         bin_edges=Param(list, [0, 0.5, 1.0], msg="Binning for training data"),
-        random_seed=Param(int, msg="random seed"),
+        seed=Param(int, msg="random seed"),
         no_assign=Param(int, -99, msg="Value for no assignment flag"),
     )
     outputs = [("model", ModelHandle)]
@@ -58,7 +58,7 @@ class RandomForestInformer(CatInformer):
 
         # Pull out the appropriate columns and combinations of the data
         print(
-            f"Using these bands to train the tomography selector: {self.config.bands}"
+            f"Using these bands to train the tomography selector: {self.config.band_map}"
         )
 
         # Generate the training data that we will use
@@ -66,13 +66,13 @@ class RandomForestInformer(CatInformer):
         features = []
         training_data = []
         for b1 in self.config.class_bands[:]:
-            b1_cat = self.config.bands[b1]
+            b1_cat = self.config.band_map[b1]
             # First we use the magnitudes themselves
             features.append(b1)
             training_data.append(training_data_table[b1_cat])
             # We also use the colours as training data, even the redundant ones
             for b2 in self.config.class_bands[:]:
-                b2_cat = self.config.bands[b2]
+                b2_cat = self.config.band_map[b2]
                 if b1 < b2:
                     features.append(f"{b1}-{b2}")
                     training_data.append(
@@ -98,7 +98,7 @@ class RandomForestInformer(CatInformer):
             max_depth=10,
             max_features=None,
             n_estimators=20,
-            random_state=self.config.random_seed,
+            random_state=self.config.seed,
         )
         skl_classifier.fit(training_data, training_bin)
 
@@ -123,7 +123,7 @@ class RandomForestClassifier(CatClassifier):
         class_bands=Param(
             list, ["r", "i", "z"], msg="Which bands to use for classification"
         ),
-        bands=Param(
+        band_map=Param(
             dict,
             {"r": "mag_r_lsst", "i": "mag_i_lsst", "z": "mag_z_lsst"},
             msg="column names for the the bands",
@@ -150,13 +150,13 @@ class RandomForestClassifier(CatClassifier):
         for f in self.features:
             # may be a single band
             if len(f) == 1:
-                f_cat = self.config.bands[f]
+                f_cat = self.config.band_map[f]
                 col = test_data[f_cat]
             # or a colour
             else:
                 b1, b2 = f.split("-")
-                b1_cat = self.config.bands[b1]
-                b2_cat = self.config.bands[b2]
+                b1_cat = self.config.band_map[b1]
+                b2_cat = self.config.band_map[b2]
                 col = test_data[b1_cat] - test_data[b2_cat]
             if np.all(~np.isfinite(col)):
                 # entire column is NaN.  Hopefully this will get deselected elsewhere
@@ -176,7 +176,7 @@ class RandomForestClassifier(CatClassifier):
             obj_id = test_data[self.config.id_name]
         elif self.config.id_name == "":
             # ID set to row index
-            b = self.config.bands[self.config.class_bands[0]]
+            b = self.config.band_map[self.config.class_bands[0]]
             obj_id = np.arange(len(test_data[b]))
             self.config.id_name = "row_index"
 

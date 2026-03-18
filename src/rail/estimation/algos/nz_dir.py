@@ -7,6 +7,7 @@ import pandas as pd
 import qp
 import scipy.spatial
 from ceci.config import StageParameter as Param
+from rail.core.common_params import SHARED_PARAMS
 from rail.core.data import QPHandle
 from rail.estimation.estimator import CatEstimator, CatInformer
 
@@ -37,7 +38,7 @@ class NZDirInformer(CatInformer):
         n_neigh=Param(int, 10, msg="number of neighbors to use"),
         kalgo=Param(str, "kd_tree", msg="Neighbor algorithm to use"),
         kmetric=Param(str, "euclidean", msg="Knn metric to use"),
-        szname=Param(str, "redshift", msg="name of specz column in sz_data"),
+        sz_name=Param(str, "redshift", msg="name of specz column in sz_data"),
         szweightcol=Param(str, "", msg="name of sz weight column"),
         distance_delta=Param(float, 1.0e-6, msg="padding for distance calculation"),
         hdf5_groupname=Param(
@@ -67,7 +68,7 @@ class NZDirInformer(CatInformer):
             )
         sz_mag_data = np.array([sz_data[band] for band in self.config.usecols]).T
         sz_mag_data[~np.isfinite(sz_mag_data)] = 40.0
-        szvec = np.array(sz_data[self.config.szname])
+        szvec = np.array(sz_data[self.config.sz_name])
         neighbors = NearestNeighbors(
             n_neighbors=self.config["n_neigh"],
             algorithm=self.config["kalgo"],
@@ -102,12 +103,12 @@ class NZDirSummarizer(CatEstimator):
     interactive_function = "nz_dir_summarizer"
     config_options = CatEstimator.config_options.copy()
     config_options.update(
-        zmin=Param(float, 0.0, msg="The minimum redshift of the z grid"),
-        zmax=Param(float, 3.0, msg="The maximum redshift of the z grid"),
-        nzbins=Param(int, 301, msg="The number of gridpoints in the z grid"),
+        zmin=SHARED_PARAMS,
+        zmax=SHARED_PARAMS,
+        nzbins=SHARED_PARAMS,
         seed=Param(int, 87, msg="random seed"),
         usecols=Param(
-            list, default_usecols, msg="columns from sz_date for Neighbor calculation"
+            list, default_usecols, msg="columns from sz_data for Neighbor calculation"
         ),
         leafsize=Param(int, 40, msg="leaf size for testdata KDTree"),
         hdf5_groupname=Param(
@@ -116,7 +117,7 @@ class NZDirSummarizer(CatEstimator):
             msg="name of hdf5 group for data, if None, then set to ''",
         ),
         phot_weightcol=Param(str, "", msg="name of photometry weight, if present"),
-        nsamples=Param(int, 20, msg="number of bootstrap samples to generate"),
+        n_samples=Param(int, 20, msg="number of bootstrap samples to generate"),
     )
     outputs = [("output", QPHandle), ("single_NZ", QPHandle)]
 
@@ -149,7 +150,7 @@ class NZDirSummarizer(CatEstimator):
         # Creating de indices for the bootstrap sampling, and broadcasting to the other process
         # if we are running in parallel
         ngal = len(self.szweights)
-        nsamp = self.config.nsamples
+        nsamp = self.config.n_samples
         if self.rank == 0:
             bootstrap_matrix = rng.integers(low=0, high=ngal, size=(ngal, nsamp))
         else:  # pragma: no cover
@@ -240,7 +241,7 @@ class NZDirSummarizer(CatEstimator):
         # The way things are set up, it is easier and faster to bootstrap the spec-z gals
         # and weights, but if we wanted to be more like the other bootstraps we should really
         # bootstrap the photometric data and re-run the ball tree query N times.
-        nsamp = self.config.nsamples
+        nsamp = self.config.n_samples
         hist_vals = np.empty((nsamp, self.config.nzbins))
         for i in range(nsamp):
             bootstrap_indices = bootstrap_matrix[:, i]
@@ -323,7 +324,7 @@ class NZDirSummarizer(CatEstimator):
 
         tab_samples = sample_ens_spread.build_tables()
 
-        nsamp = self.config.nsamples
+        nsamp = self.config.n_samples
         hist_samples = np.zeros((nsamp, self.config.nzbins))
         normalization = tab_samples["ancil"]["normalization"]
         hist_samples_spread = tab_samples["data"]["pdfs"] * normalization[:, None]
